@@ -62,17 +62,31 @@
       position:relative;
       padding: 0 18px 26px;
     }
-    .strip{
-      display:grid;
-      grid-auto-flow:column;
-      grid-auto-columns:minmax(280px, 420px);
-      gap:22px;
-      overflow-x:auto;
-      padding:6px 56px;                  /* room for arrows */
-      scroll-snap-type:x mandatory;
-      scrollbar-width:none;
-    }
-    .strip::-webkit-scrollbar{display:none}
+    /* CARDS STRIP — exactly 3 per view on desktop */
+.strip{
+  display:grid;
+  grid-auto-flow:column;
+  /* 3 cards: (100% - 56px*2 - 22px*2) / 3  => (100% - 156px) / 3 */
+  grid-auto-columns: calc((100% - 156px) / 3);
+  gap:22px;
+  overflow-x:auto;
+  padding:6px 56px;                   /* leaves space for arrows */
+  scroll-snap-type:x mandatory;
+  scrollbar-width:none;
+}
+.strip::-webkit-scrollbar{display:none}
+
+/* 2 per view (tablet-ish) */
+@media (max-width: 1200px){
+  /* (100% - 56*2 - 22*1) / 2 = (100% - 134px) / 2 */
+  .strip{ grid-auto-columns: calc((100% - 134px) / 2); }
+}
+
+/* 1 per view (phones) */
+@media (max-width: 700px){
+  /* (100% - 56*2) / 1 = 100% - 112px */
+  .strip{ grid-auto-columns: calc(100% - 112px); }
+}
 
     .card{
       scroll-snap-align:start;
@@ -133,8 +147,8 @@
     .nav.is-disabled, .nav[aria-disabled="true"], .nav:disabled{
       filter:grayscale(1);
       opacity:.35;
-      pointer-events:none; cursor:default;
-    }
+      pointer-events:none;}
+    
     /* bottom progress (same as before) */
     .progress{
       height:6px; margin:16px auto 0; width:min(860px, 92%);
@@ -179,7 +193,7 @@
   </style>
 </head>
 <body>
-  <h1>Upcoming AIT Professional Development</h1>
+  <h1>Upcoming AIT Professional Development V1</h1>
 
   <div class="tabs" role="tablist" aria-label="View mode">
     <button class="tab is-active" id="tab-cards" aria-selected="true">Cards</button>
