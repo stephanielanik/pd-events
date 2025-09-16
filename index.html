@@ -60,7 +60,15 @@
     /* Agenda description line spacing */
     .agenda .desc{line-height: 1.35;   /* was ~1.5; lower = tighter */
 }
-
+/* Constrain agenda to a panel that scrolls internally */
+.agenda-wrap{
+  max-height: 70vh;           /* or a fixed px value (e.g., 520px) */
+  overflow-y: auto;
+  padding-right: 6px;         /* avoid text hugging the scrollbar */
+  scrollbar-gutter: stable;   /* keeps layout from shifting when bar appears */
+  border-radius: 14px;
+}
+    .section-header{ position: sticky; top: 0; background: #f7f9fc; z-index: 1; }
 /* If Google inserted <p> tags, kill their big margins */
     .agenda .desc p{margin: 2px 0;}
     .row{display:grid;grid-template-columns:100px 1fr;gap:16px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
@@ -94,9 +102,11 @@
     </div>
 
     <!-- Agenda view -->
-    <div id="agenda" class="agenda" hidden></div>
+    <div id="agendaWrap" class="agenda-wrap" tabindex="0" aria-label="Agenda events">
+    <div id="agenda" class="agenda" role="list" aria-label="Agenda"></div>
+    
 
-    <div id="empty" class="empty" hidden>No upcoming events found.</div>
+    <div id="empty" class="empty" hidden>No upcoming events found.</div></div>
   </div>
 
   <script>
