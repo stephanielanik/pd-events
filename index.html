@@ -11,7 +11,13 @@
       --columns:3; --rail-max:1200px;
       --surface:#fff; --page:#fafbfc; --muted:#445;
     }
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:var(--page);color:#1a1a1a}
+    html, body { background: transparent !important; }
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  margin: 0;
+  padding: 24px;
+  color: #1a1a1a;
+}
     .section{max-width:var(--rail-max);margin:0 auto;padding:24px}
     h1{margin:0 0 12px;font-size:clamp(1.25rem,1.2rem + 1vw,1.75rem);text-align:left}
 
@@ -95,7 +101,7 @@
 </head>
 <body>
   <div class="section">
-    <h1>Upcoming AIT Professional Development V1</h1>
+    <h1>Upcoming AIT Professional Development V2</h1>
 
     <div class="toolbar">
       <div class="view-toggle" role="tablist" aria-label="Choose layout">
