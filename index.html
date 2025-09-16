@@ -64,22 +64,22 @@
     }
 
     function getTaggedUrl(desc, tag) {
-      if (!desc) return '';
-      const lines = desc.split(/\r?\n/).map(l => l.trim());
-      const hit = lines.find(l => l.toUpperCase().startsWith(tag.toUpperCase() + ':'));
-      if (!hit) return '';
-      const url = hit.split(':').slice(1).join(':').trim();
-      try { new URL(url); return url; } catch { return ''; }
-    }
+  if (!desc) return '';
+  // Match TAG: <url> anywhere (not just at line start)
+  const re = new RegExp(tag + '\\s*:\\s*(https?:\\/\\/\\S+)', 'i');
+  const m = desc.match(re);
+  if (!m) return '';
+  try { new URL(m[1]); return m[1]; } catch { return ''; }
+}
 
-    function sanitizeDesc(desc) {
-      if (!desc) return '';
-      return desc
-        .replace(/^BANNER:.*$/gmi, '')
-        .replace(/^REGISTER:.*$/gmi, '')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim();
-    }
+   function sanitizeDesc(desc) {
+  if (!desc) return '';
+  // Remove any TAG: <url> occurrences (BANNER or REGISTER), even inline
+  return desc
+    .replace(/\\s*(BANNER|REGISTER)\\s*:\\s*https?:\\/\\/\\S+/gi, '')
+    .replace(/\\n{3,}/g, '\\n\\n')
+    .trim();
+}
 
     function fmtRange(start, end, allDay) {
       const optsD = { weekday:'short', month:'short', day:'numeric' };
@@ -145,10 +145,13 @@
 
         const imgWrap = document.createElement('div');
         imgWrap.className = 'img-wrap';
+        
         const img = document.createElement('img');
-        img.loading = 'lazy'; img.alt = '';
-        img.src = banner;
-        imgWrap.appendChild(img);
+img.loading = 'lazy';
+img.alt = '';
+img.referrerPolicy = 'no-referrer';   // helps with some hosts
+img.src = banner;
+img.onerror = () => { img.src = FALLBACK_IMAGE; }; // use fallback if banner fails
 
         const c = document.createElement('div');
         c.className = 'content';
