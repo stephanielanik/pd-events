@@ -5,218 +5,232 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>AIT Professional Development Opportunities – Cards</title>
   <style>
-    :root {
-  --gap: 1rem;
-  --radius: 16px;
-  --shadow: 0 8px 24px rgba(0,0,0,.08);
-  --brand: #004D86;
-  --brand-hover: #003a66;
-  --brand-active: #002f52;
-}
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; padding: 24px; background: #fafbfc; color: #1a1a1a; }
-    h1 { font-size: clamp(1.25rem, 1.2rem + 1vw, 1.75rem); margin: 0 0 20px; }
-    .strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(280px, 360px); gap: var(--gap); overflow-x: auto; padding: var(--gap); scroll-snap-type: x mandatory; }
-    .card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); scroll-snap-align: start; display: flex; flex-direction: column; }
-    .img-wrap { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-top-left-radius: var(--radius); border-top-right-radius: var(--radius); background:#eef2f7; }
-    .img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .content { padding: 14px 16px 16px; display: grid; gap: 8px; }
-    .title { font-weight: 600; line-height: 1.25; }
-    .meta { font-size: .9rem; color: #445; }
-    .desc { font-size: .95rem; color: #333; white-space: pre-line; line-height: 1.5; } /* preserve your \n */
-    .cta {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  text-decoration: none;
-  background: var(--brand);
-  color: #fff;
-  font-weight: 600;
-}
-    .cta:hover,
-.cta:focus-visible { background: var(--brand-hover); }
-.cta:active { background: var(--brand-active); }
-    .empty { padding: 24px; color: #555; }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-  </style>
-  <!--
-    HOW TO USE
-    1) Make your Google Calendar PUBLIC (Settings → Access permissions → Make available to public → See all event details)
-    2) Copy CALENDAR_ID (Settings → Integrate calendar → Calendar ID)
-    3) Create an API key (console.cloud.google.com → enable Google Calendar API → Credentials → API key). Restrict by HTTP referrers.
-    4) Fill CALENDAR_ID and API_KEY below. Host on GitHub Pages or your site. Optionally iframe into Canvas.
+    :root{
+      --gap: 16px;
+      --radius: 16px;
+      --shadow: 0 8px 24px rgba(0,0,0,.08);
+      --brand: #004D86;
+      --brand-hover:#003a66;
+      --brand-active:#002f52;
+      --columns: 3;                /* show 3 at a time */
+      --rail-max: 1200px;          /* max width of strip area */
+    }
 
-    Authoring tip (in event description; optional):
-      BANNER: https://yourdomain.edu/path/image.jpg
-      REGISTER: https://yourformlink
-    These are parsed and removed from the visible description.
-  -->
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:24px;background:#fafbfc;color:#1a1a1a}
+    h1{font-size:clamp(1.25rem,1.2rem + 1vw,1.75rem);margin:0 0 12px}
+
+    /* Rail with arrows */
+    .rail{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.5rem;max-width:var(--rail-max);margin:0 auto}
+    .nav{
+      width:40px;height:40px;border-radius:50%;border:0;cursor:pointer;
+      background:var(--brand);color:#fff;font-size:20px;font-weight:700;
+      display:grid;place-items:center;box-shadow:var(--shadow)
+    }
+    .nav:hover{background:var(--brand-hover)}
+    .nav:active{background:var(--brand-active)}
+    .nav[disabled]{opacity:.35;pointer-events:none}
+
+    /* Filmstrip */
+    .strip{
+      display:grid;
+      grid-auto-flow:column;
+      gap:var(--gap);
+      overflow-x:auto;
+      padding:var(--gap);
+      scroll-snap-type:x mandatory;
+      /* EXACT 3-UP math: each card takes 1/3 of the viewport minus gaps */
+      grid-auto-columns:calc((100% - (var(--columns) - 1)*var(--gap)) / var(--columns));
+      scroll-behavior:smooth;
+    }
+    .strip:focus{outline:none}
+    .strip::-webkit-scrollbar{height:10px}
+    .strip::-webkit-scrollbar-thumb{background:#c9d1d9;border-radius:999px}
+
+    .card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);scroll-snap-align:start;display:flex;flex-direction:column}
+    .img-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;border-top-left-radius:var(--radius);border-top-right-radius:var(--radius);background:#eef2f7}
+    .img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+
+    .content{padding:14px 16px 16px;display:grid;gap:8px}
+    .title{font-weight:600;line-height:1.25}
+    .meta{font-size:.9rem;color:#445}
+    .desc{font-size:.95rem;color:#333;white-space:pre-line;line-height:1.5}
+
+    .cta{display:inline-block;margin-top:6px;padding:10px 12px;border-radius:10px;text-decoration:none;background:var(--brand);color:#fff;font-weight:600}
+    .cta:hover{background:var(--brand-hover)}
+    .cta:active{background:var(--brand-active)}
+
+    .empty{padding:24px;color:#555;max-width:var(--rail-max);margin:0 auto}
+  </style>
 </head>
 <body>
   <h1>Upcoming Professional Development Opportunities</h1>
-  <div id="strip" class="strip" role="list" aria-label="Upcoming events"></div>
+
+  <div class="rail">
+    <button class="nav prev" aria-label="Previous events">‹</button>
+    <div id="strip" class="strip" role="list" aria-label="Upcoming events"></div>
+    <button class="nav next" aria-label="Next events">›</button>
+  </div>
+
   <div id="empty" class="empty" hidden>No upcoming events found.</div>
 
   <script>
-    // === EDIT THESE (already filled with your values) ===
-    const CALENDAR_ID = 'unkaitcalendar@gmail.com';
-    const API_KEY = 'AIzaSyBUJxL5LLxzrzutXCSGBcv28XJX02GhSIU';
-    const MONTHS_AHEAD = 3;
-    const MAX_RESULTS = 50;
-    // Use a DIRECT image URL (your GitHub Pages image is fine)
-    const FALLBACK_IMAGE = 'https://stephanielanik.github.io/pd-events/images/aitevent.jpg';
+    // === EDIT THESE (kept from your file) ===
+    const CALENDAR_ID   = 'unkaitcalendar@gmail.com';
+    const API_KEY       = 'AIzaSyBUJxL5LLxzrzutXCSGBcv28XJX02GhSIU';
+    const MONTHS_AHEAD  = 3;
+    const MAX_RESULTS   = 50;
+    const FALLBACK_IMAGE= 'https://stephanielanik.github.io/pd-events/images/aitevent.jpg';
 
-    // === Helpers ===
-    function getRange() {
+    // Helpers
+    function getRange(){
       const now = new Date();
-      const end = new Date(); end.setMonth(end.getMonth() + MONTHS_AHEAD);
+      const end = new Date(); end.setMonth(end.getMonth()+MONTHS_AHEAD);
       return { timeMin: now.toISOString(), timeMax: end.toISOString() };
     }
-
-    function htmlToText(html) {
-      const d = document.createElement('div');
-      d.innerHTML = html || '';
-      d.querySelectorAll('style,script').forEach(el => el.remove());
-      const text = d.textContent || '';
-      return text.replace(/\u00A0/g, ' ').replace(/\s+\n/g, '\n').trim();
+    function htmlToText(html){
+      const d=document.createElement('div'); d.innerHTML=html||'';
+      d.querySelectorAll('style,script').forEach(el=>el.remove());
+      const text=d.textContent||'';
+      return text.replace(/\u00A0/g,' ').replace(/\s+\n/g,'\n').trim();
     }
-
-    // Works whether Google auto-links the URL (HTML) or it stays as plain text
-    function getTaggedUrlFromEither(descHtml, descText, tag) {
-      const htmlRe = new RegExp(tag + '\\s*:\\s*<a[^>]+href="([^"]+)"', 'i');
-      const hm = (descHtml || '').replace(/\u00A0/g, ' ').match(htmlRe);
-      if (hm && hm[1]) { try { new URL(hm[1]); return hm[1]; } catch {} }
-
-      const textRe = new RegExp(tag + '\\s*:\\s*(https?:\\/\\/\\S+)', 'i');
-      const tm = (descText || '').match(textRe);
-      if (tm && tm[1]) { try { new URL(tm[1]); return tm[1]; } catch {} }
-
+    function getTaggedUrlFromEither(descHtml, descText, tag){
+      const htmlRe=new RegExp(tag+'\\s*:\\s*<a[^>]+href="([^"]+)"','i');
+      const hm=(descHtml||'').replace(/\u00A0/g,' ').match(htmlRe);
+      if(hm&&hm[1]){ try{ new URL(hm[1]); return hm[1]; }catch{} }
+      const textRe=new RegExp(tag+'\\s*:\\s*(https?:\\/\\/\\S+)','i');
+      const tm=(descText||'').match(textRe);
+      if(tm&&tm[1]){ try{ new URL(tm[1]); return tm[1]; }catch{} }
       return '';
     }
-
-    function sanitizeDesc(descText) {
-      if (!descText) return '';
+    function sanitizeDesc(descText){
+      if(!descText) return '';
       return descText
-        .replace(/\s*(BANNER|REGISTER)\s*:\s*https?:\/\/\S+/gi, '') // strip tag lines anywhere
-        .replace(/\n{3,}/g, '\n\n')
+        .replace(/\s*(BANNER|REGISTER)\s*:\s*https?:\/\/\S+/gi,'')
+        .replace(/\n{3,}/g,'\n\n')
         .trim();
     }
-
-    function fmtRange(start, end, allDay) {
-      const optsD = { weekday:'short', month:'short', day:'numeric' };
-      const optsT = { hour:'numeric', minute:'2-digit' };
-      const s = new Date(start), e = new Date(end || start);
-      if (allDay) {
-        const sameDay = s.toDateString() === e.toDateString();
-        return sameDay ? s.toLocaleDateString(undefined, optsD)
-                       : `${s.toLocaleDateString(undefined, optsD)} → ${e.toLocaleDateString(undefined, optsD)}`;
-      } else {
-        const sameDay = s.toDateString() === e.toDateString();
-        const d1 = s.toLocaleDateString(undefined, optsD);
-        const t1 = s.toLocaleTimeString(undefined, optsT);
-        const t2 = e.toLocaleTimeString(undefined, optsT);
-        return sameDay ? `${d1} • ${t1}–${t2}` : `${d1} ${t1} → ${e.toLocaleDateString(undefined, optsD)} ${t2}`;
+    function fmtRange(start,end,allDay){
+      const optsD={weekday:'short',month:'short',day:'numeric'};
+      const optsT={hour:'numeric',minute:'2-digit'};
+      const s=new Date(start), e=new Date(end||start);
+      if(allDay){
+        const same=s.toDateString()===e.toDateString();
+        return same ? s.toLocaleDateString(undefined,optsD)
+                    : `${s.toLocaleDateString(undefined,optsD)} → ${e.toLocaleDateString(undefined,optsD)}`;
+      }else{
+        const same=s.toDateString()===e.toDateString();
+        const d1=s.toLocaleDateString(undefined,optsD);
+        const t1=s.toLocaleTimeString(undefined,optsT);
+        const t2=e.toLocaleTimeString(undefined,optsT);
+        return same ? `${d1} • ${t1}–${t2}` : `${d1} ${t1} → ${e.toLocaleDateString(undefined,optsD)} ${t2}`;
       }
     }
-
-    async function fetchEvents() {
-      const { timeMin, timeMax } = getRange();
-      const base = 'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(CALENDAR_ID) + '/events';
-      const url = new URL(base);
-      url.searchParams.set('key', API_KEY);
-      url.searchParams.set('singleEvents', 'true');
-      url.searchParams.set('orderBy', 'startTime');
-      url.searchParams.set('maxResults', String(MAX_RESULTS));
-      url.searchParams.set('timeMin', timeMin);
-      url.searchParams.set('timeMax', timeMax);
-
-      const res = await fetch(url.toString());
-      if (!res.ok) throw new Error('Google API error ' + res.status);
-      const data = await res.json();
-      return (data.items || []).filter(ev => !ev.status || ev.status !== 'cancelled');
+    async function fetchEvents(){
+      const {timeMin,timeMax}=getRange();
+      const base='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(CALENDAR_ID)+'/events';
+      const url=new URL(base);
+      url.searchParams.set('key',API_KEY);
+      url.searchParams.set('singleEvents','true');
+      url.searchParams.set('orderBy','startTime');
+      url.searchParams.set('maxResults',String(MAX_RESULTS));
+      url.searchParams.set('timeMin',timeMin);
+      url.searchParams.set('timeMax',timeMax);
+      const res=await fetch(url.toString());
+      if(!res.ok) throw new Error('Google API error '+res.status);
+      const data=await res.json();
+      return (data.items||[]).filter(ev=>!ev.status||ev.status!=='cancelled');
+    }
+    function getTimes(ev){
+      const s=ev.start?.dateTime || (ev.start?.date ? ev.start.date+'T00:00:00' : null);
+      const e=ev.end?.dateTime   || (ev.end?.date   ? ev.end.date  +'T00:00:00' : s);
+      const allDay=!!ev.start?.date && !!ev.end?.date;
+      return {start:s,end:e,allDay};
     }
 
-    function getTimes(ev) {
-      // Handles all-day (date) vs timed (dateTime)
-      const s = ev.start?.dateTime || (ev.start?.date ? ev.start.date + 'T00:00:00' : null);
-      const e = ev.end?.dateTime || (ev.end?.date ? ev.end.date + 'T00:00:00' : s);
-      const allDay = !!ev.start?.date && !!ev.end?.date;
-      return { start: s, end: e, allDay };
-    }
+    function render(events){
+      const strip=document.getElementById('strip');
+      const empty=document.getElementById('empty');
+      strip.innerHTML='';
+      if(!events.length){ empty.hidden=false; return; }
+      empty.hidden=true;
 
-    function render(events) {
-      const strip = document.getElementById('strip');
-      const empty = document.getElementById('empty');
-      strip.innerHTML = '';
-      if (!events.length) { empty.hidden = false; return; }
-      empty.hidden = true;
+      for(const ev of events){
+        const {start,end,allDay}=getTimes(ev);
+        const whenText=fmtRange(start,end,allDay);
 
-      for (const ev of events) {
-        // times
-        const { start, end, allDay } = getTimes(ev);
-        const whenText = fmtRange(start, end, allDay);
-
-        // description + tags
         const descHtml = ev.description || '';
         const descText = htmlToText(descHtml);
-        const banner = getTaggedUrlFromEither(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
-        const signup = getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
-        const descClean = sanitizeDesc(descText);
+        const banner   = getTaggedUrlFromEither(descHtml,descText,'BANNER') || FALLBACK_IMAGE;
+        const signup   = getTaggedUrlFromEither(descHtml,descText,'REGISTER');
+        const descClean= sanitizeDesc(descText);
 
-        // card
-        const card = document.createElement('article');
-        card.className = 'card';
-        card.setAttribute('role', 'listitem');
+        const card=document.createElement('article');
+        card.className='card';
+        card.setAttribute('role','listitem');
 
-        // image
-        const imgWrap = document.createElement('div');
-        imgWrap.className = 'img-wrap';
-        const img = document.createElement('img');
-        img.loading = 'lazy';
-        img.alt = '';
-        img.referrerPolicy = 'no-referrer';
-        img.src = banner;
-        img.onerror = () => { img.src = FALLBACK_IMAGE; };
+        const imgWrap=document.createElement('div');
+        imgWrap.className='img-wrap';
+        const img=document.createElement('img');
+        img.loading='lazy'; img.alt=''; img.referrerPolicy='no-referrer';
+        img.src=banner; img.onerror=()=>{ img.src=FALLBACK_IMAGE; };
         imgWrap.appendChild(img);
 
-        // content
-        const c = document.createElement('div');
-        c.className = 'content';
+        const c=document.createElement('div'); c.className='content';
+        const title=document.createElement('div'); title.className='title'; title.textContent=ev.summary||'Untitled event';
+        const meta=document.createElement('div'); meta.className='meta'; meta.textContent=whenText + (ev.location?` • ${ev.location}`:'');
+        const desc=document.createElement('div'); desc.className='desc'; desc.textContent=descClean;
+        c.append(title,meta,desc);
 
-        const title = document.createElement('div');
-        title.className = 'title';
-        title.textContent = ev.summary || 'Untitled event';
-
-        const meta = document.createElement('div');
-        meta.className = 'meta';
-        meta.textContent = whenText + (ev.location ? ` • ${ev.location}` : '');
-
-        const desc = document.createElement('div');
-        desc.className = 'desc';      // CSS keeps your line breaks
-        desc.textContent = descClean; // keep as text
-
-        c.append(title, meta, desc);
-
-        if (signup) {
-          const a = document.createElement('a');
-          a.className = 'cta';
-          a.href = signup; a.target = '_blank'; a.rel = 'noopener';
-          a.textContent = 'Sign up';
+        if(signup){
+          const a=document.createElement('a'); a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
           c.appendChild(a);
         }
 
-        card.append(imgWrap, c);
+        card.append(imgWrap,c);
         strip.appendChild(card);
       }
+
+      initRailNav(); // wire up arrows after cards exist
     }
 
-    (async () => {
-      try {
-        const items = await fetchEvents();
+    // ---- Filmstrip nav (Prev/Next) ----
+    function initRailNav(){
+      const strip = document.getElementById('strip');
+      const prev  = document.querySelector('.nav.prev');
+      const next  = document.querySelector('.nav.next');
+
+      if(!strip || !prev || !next) return;
+
+      const getGap = ()=> parseFloat(getComputedStyle(strip).columnGap || getComputedStyle(strip).gap) || 16;
+      const step = ()=> {
+        const first = strip.querySelector('.card');
+        if (!first) return 0;
+        return first.getBoundingClientRect().width + getGap(); // one card width
+      };
+
+      function updateNav(){
+        // disable prev at left edge; disable next at right edge
+        prev.disabled = strip.scrollLeft <= 0;
+        next.disabled = strip.scrollLeft + strip.clientWidth >= strip.scrollWidth - 1;
+      }
+
+      prev.onclick = ()=> strip.scrollBy({ left: -step(), behavior:'smooth' });
+      next.onclick = ()=> strip.scrollBy({ left:  step(), behavior:'smooth' });
+
+      strip.addEventListener('scroll', updateNav, { passive:true });
+      window.addEventListener('resize', updateNav);
+      // kick once
+      updateNav();
+    }
+
+    (async()=>{
+      try{
+        const items=await fetchEvents();
         render(items);
-      } catch (err) {
-        document.getElementById('empty').hidden = false;
-        document.getElementById('empty').textContent = 'Could not load events. (' + err.message + ')';
+      }catch(err){
+        const empty=document.getElementById('empty');
+        empty.hidden=false;
+        empty.textContent='Could not load events. ('+err.message+')';
         console.error(err);
       }
     })();
