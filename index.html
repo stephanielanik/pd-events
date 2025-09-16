@@ -9,16 +9,24 @@
   :root{
     --brand:#004D86; --brand-hover:#0a5ea2; --brand-active:#084d86;
     --text:#15202b; --muted:#445;
-    --bg:transparent;              /* keep host page background */
+    --bg:transparent;
     --card:#fff; --soft:#f2f4f7;
     --radius:18px;
     --shadow:0 8px 24px rgba(0,0,0,.08);
     --shadow-md:0 14px 40px rgba(0,0,0,.12);
-    --gap:20px; --nav:48px;
+    --gap:20px; --nav:48px;                 /* <-- arrow size used for gutters */
+    --rail-pad: calc(var(--nav) + 8px);      /* <-- keep heading/tabs aligned to cards */
   }
 
   body{ margin:0; padding:24px 16px 36px; background:var(--bg); color:var(--text);
         font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+
+  /* shared width clamp */
+  .widget-shell{ max-width:1200px; margin:0 auto; }
+
+  /* this gives the same inner margins as the card rail (inside arrow gutters) */
+  .rail-margins{ padding-left:var(--rail-pad); padding-right:var(--rail-pad); }
+
   h1{ font-size:clamp(1.25rem,1.1rem + 1.1vw,2rem); margin:0 0 12px; }
 
   /* view toggle */
@@ -27,11 +35,8 @@
         background:var(--soft); color:var(--text); font-weight:700; cursor:pointer; }
   .tab[aria-selected="true"]{ background:var(--brand); color:#fff; }
 
-  /* shell clamps width so only 3 cards fit on desktop */
-  .widget-shell{ max-width:1200px; margin:0 auto; }
-
   /* carousel */
-  .carousel{ position:relative; padding:0 calc(var(--nav) + 8px); } /* gutters so arrows don't overlap */
+  .carousel{ position:relative; padding:0 var(--rail-pad); }   /* same gutters as .rail-margins */
   .strip{
     display:grid;
     grid-auto-flow:column;
@@ -74,7 +79,8 @@
   .nav[disabled]{ background:#d5dbe3; color:#fff; cursor:not-allowed; opacity:.85; }
 
   /* agenda */
-  .agenda-wrap{ padding:10px 18px; } /* left padding so shadows don’t clip */
+  .agenda-viewport{ max-height:70vh; overflow:auto; }   /* <-- self-scrolling panel */
+  .agenda-wrap{ padding-top:6px; }                      /* small vertical breathing room */
   .row{ display:grid; grid-template-columns:96px 1fr; gap:16px;
         background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
         padding:14px; margin-bottom:14px; }
@@ -91,14 +97,18 @@
 </head>
 <body>
 
-  <h1>Upcoming AIT Professional Development</h1>
-
-  <div class="tabs" role="tablist" aria-label="View">
-    <button id="tabCards"  class="tab" role="tab" aria-selected="true"  aria-controls="panelCards">Cards</button>
-    <button id="tabAgenda" class="tab" role="tab" aria-selected="false" aria-controls="panelAgenda">Agenda</button>
+  <!-- heading + tabs aligned to card rail -->
+  <div class="widget-shell">
+    <div class="rail-margins">
+      <h1>Upcoming AIT Professional Development</h1>
+      <div class="tabs" role="tablist" aria-label="View">
+        <button id="tabCards"  class="tab" role="tab" aria-selected="true"  aria-controls="panelCards">Cards</button>
+        <button id="tabAgenda" class="tab" role="tab" aria-selected="false" aria-controls="panelAgenda">Agenda</button>
+      </div>
+    </div>
   </div>
 
-  <!-- CARDS PANEL (id MUST match aria-controls) -->
+  <!-- CARDS -->
   <section id="panelCards" role="tabpanel" aria-labelledby="tabCards">
     <div class="widget-shell">
       <div class="carousel">
@@ -115,9 +125,15 @@
     </div>
   </section>
 
-  <!-- AGENDA PANEL -->
+  <!-- AGENDA (same left/right margins as card rail, and its own scroll area) -->
   <section id="panelAgenda" role="tabpanel" aria-labelledby="tabAgenda" hidden>
-    <div class="agenda-wrap" id="agendaWrap"></div>
+    <div class="widget-shell">
+      <div class="rail-margins">
+        <div class="agenda-viewport">
+          <div class="agenda-wrap" id="agendaWrap"></div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <div id="empty" hidden>No upcoming events found.</div>
@@ -157,7 +173,6 @@ function htmlToText(html){
   const text = d.textContent || '';
   return text.replace(/\u00A0/g,' ').replace(/\s+\n/g,"\n").trim();
 }
-// Read BANNER/REGISTER/SIGNUP from either HTML ("TAG: <a href=…>") or plain text ("TAG: https://…")
 function getTaggedUrlFromEither(descHtml, descText, tag){
   const hm = (descHtml||'').replace(/\u00A0/g,' ').match(new RegExp(tag+'\\s*:\\s*<a[^>]+href="([^"]+)"','i'));
   if (hm?.[1]) { try { new URL(hm[1]); return hm[1]; } catch {} }
@@ -249,7 +264,7 @@ function renderCards(events){
     strip.appendChild(card);
   }
 
-  initRailNav(); // only once, after cards are in the DOM
+  initRailNav();
 }
 
 /* ========= Render: Agenda ========= */
@@ -306,7 +321,7 @@ function initRailNav(){
   const nextBtn = document.getElementById('nextBtn');
   if (!strip || !prevBtn || !nextBtn) return;
 
-  const eps = 1; // tolerance for subpixel math
+  const eps = 1;
   const maxScrollLeft = el => el.scrollWidth - el.clientWidth;
 
   function updateArrows(){
@@ -321,7 +336,7 @@ function initRailNav(){
   nextBtn.onclick = () => strip.scrollBy({ left:  strip.clientWidth, behavior:'smooth' });
   strip.addEventListener('scroll', updateArrows, { passive:true });
   window.addEventListener('resize', () => requestAnimationFrame(updateArrows));
-  requestAnimationFrame(updateArrows); // initial
+  requestAnimationFrame(updateArrows);
 }
 
 /* ========= Tabs ========= */
