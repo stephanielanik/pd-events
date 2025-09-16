@@ -321,10 +321,49 @@ if (descClean.length > 180) {                     // rough threshold; tweak as n
     }
 
     function initRailNav(){
-      const strip = document.getElementById('strip');
-      const prev  = document.querySelector('.nav.prev');
-      const next  = document.querySelector('.nav.next');
-      if(!strip || !prev || !next) return;
+      const strip   = document.getElementById('strip');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+function maxScrollLeft(el){ return el.scrollWidth - el.clientWidth; }
+
+function updateArrows(){
+  // if Agenda view is active or strip missing, bail safely
+  if (!strip || strip.offsetParent === null) return;
+
+  const max = maxScrollLeft(strip);
+  const eps = 1;                       // tolerance for sub-pixel snap
+
+  if (max <= eps) {                    // no overflow at all
+    prevBtn.classList.add('disabled');
+    nextBtn.classList.add('disabled');
+    return;
+  }
+
+  const sl = strip.scrollLeft;
+  const atStart = sl <= eps;
+  const atEnd   = (max - sl) <= eps;
+
+  prevBtn.classList.toggle('disabled', atStart);
+  nextBtn.classList.toggle('disabled', atEnd);
+}
+
+// scroll actions
+prevBtn.addEventListener('click', () => {
+  strip.scrollBy({ left: -strip.clientWidth, behavior: 'smooth' });
+});
+nextBtn.addEventListener('click', () => {
+  strip.scrollBy({ left:  strip.clientWidth, behavior: 'smooth' });
+});
+
+// keep arrows in sync
+strip.addEventListener('scroll', updateArrows, { passive:true });
+window.addEventListener('resize', () => requestAnimationFrame(updateArrows));
+
+// IMPORTANT: call after cards render and when switching back to “Cards” view
+// e.g., at the end of your render(items) and setView('cards'):
+// render(items) { … requestAnimationFrame(updateArrows); }
+// setView('cards') { … requestAnimationFrame(updateArrows); }
 
       const getGap = ()=> parseFloat(getComputedStyle(strip).columnGap || getComputedStyle(strip).gap) || 16;
       const step   = ()=> {
