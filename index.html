@@ -22,6 +22,38 @@ body {
 
     .section{max-width:var(--rail-max);margin:0 auto;padding:24px}
     h1{margin:0 0 12px;font-size:clamp(1.25rem,1.2rem + 1vw,1.75rem);text-align:left}
+/* --- make cards pop a bit more in Canvas --- */
+:root{
+  /* tweak these three to taste */
+  --card-border: 1px solid rgba(20,40,60,.10);   /* faint hairline */
+  --card-shadow: 0 8px 26px rgba(0,0,0,.14);     /* stronger shadow */
+  --card-bg: #fff;                               /* keep white; see alt below */
+}
+
+/* Filmstrip cards */
+.card{
+  background: var(--card-bg);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+/* Agenda rows */
+.agenda-item{
+  background: var(--card-bg);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+/* a little lift on hover/focus (mouse & keyboard) */
+.card:hover, .card:focus-within,
+.agenda-item:hover, .agenda-item:focus-within{
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(0,0,0,.18);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+/* Optional: add a 2px radius to images so borders look seamless */
+.img-wrap { border-radius: 14px 14px 0 0; overflow: hidden; }
 
     /* Toggle */
     .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:4px;margin-bottom:8px}
@@ -103,7 +135,7 @@ body {
 </head>
 <body>
   <div class="section">
-    <h1>Upcoming AIT Professional Development V3</h1>
+    <h1>Upcoming AIT Professional Development V4</h1>
 
     <div class="toolbar">
       <div class="view-toggle" role="tablist" aria-label="Choose layout">
