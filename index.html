@@ -101,7 +101,7 @@ body {
 </head>
 <body>
   <div class="section">
-    <h1>Upcoming AIT Professional Development V2</h1>
+    <h1>Upcoming AIT Professional Development V3</h1>
 
     <div class="toolbar">
       <div class="view-toggle" role="tablist" aria-label="Choose layout">
@@ -152,25 +152,27 @@ body {
       const ta = document.createElement('textarea'); ta.innerHTML = s; s = ta.value;
       return s.replace(/\u00A0/g,' ').replace(/\n{3,}/g,'\n\n').trim();
     }
-    function getTaggedUrl(descHtml, descText, tags) {
-      const getTaggedUrlFromEither = (html, text, tags='REGISTER') =>
-  getTaggedUrl(html, text, Array.isArray(tags) ? tags : [tags]);
+// Read a URL from either HTML ("TAG: <a href='…'>") or plain text ("TAG: https://…")
+// "tags" can be a single string or an array like ['SIGNUP','REGISTER','RSVP']
+function getTaggedUrlFromEither(descHtml, descText, tags = 'REGISTER') {
+  const tagList = Array.isArray(tags) ? tags : [tags];
   const html = (descHtml || '').replace(/\u00A0/g, ' ');
-  const text = (descText || '');
+  const text = descText || '';
 
-  for (const tag of tags) {
-    // HTML form: TAG: <a href="...">
+  for (const tag of tagList) {
+    // HTML form
     const htmlRe = new RegExp(`${tag}\\s*:\\s*<a[^>]+href="([^"]+)"`, 'i');
     const hm = html.match(htmlRe);
     if (hm && hm[1]) { try { new URL(hm[1]); return hm[1]; } catch {} }
 
-    // Text form: TAG: https://…
+    // Text form
     const textRe = new RegExp(`${tag}\\s*:\\s*(https?:\\/\\/\\S+)`, 'i');
     const tm = text.match(textRe);
     if (tm && tm[1]) { try { new URL(tm[1]); return tm[1]; } catch {} }
   }
   return '';
 }
+
     function sanitizeDesc(descText) {
   if (!descText) return '';
   return descText
