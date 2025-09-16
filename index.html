@@ -78,14 +78,19 @@
     .row .meta{margin-top:2px}
     .row .desc{margin-top:6px}
     .row .cta{width:max-content;margin-top:10px}
-
+.card .title{
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem); /* ~20–28px responsive */
+  line-height: 1.2;
+  font-weight: 700;   /* optional: make bolder */
+  margin-bottom: 4px;
+}
     /* Hide containers when not in use */
     [hidden]{display:none !important}
   </style>
 </head>
 <body>
   <div class="section">
-    <h1>Upcoming AIT Professional Development V3</h1>
+    <h1>Upcoming AIT Professional Development</h1>
 
     <div class="toolbar">
       <div class="view-toggle" role="tablist" aria-label="Choose layout">
