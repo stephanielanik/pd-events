@@ -5,309 +5,526 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Upcoming AIT Professional Development</title>
   <style>
+    /* ====== Design tokens ====== */
     :root{
-      --gap:16px;
-      --radius:16px;
-      --brand:#004D86; --brand-hover:#003a66; --brand-active:#002f52;
-      --card-border:1px solid rgba(20,40,60,.10);
-      --card-shadow:0 8px 26px rgba(0,0,0,.14);
-      --muted:#445;
+      --brand:#004D86;
+      --ink:#111827;
+      --ink-2:#374151;
+      --muted:#6B7280;
+      --bg:transparent;           /* transparent page for Canvas */
+      --panel:#ffffff;            /* cards/agenda surfaces */
+      --radius-lg:18px;
+      --radius-md:14px;
+      --radius-sm:10px;
+      --gap:18px;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --shadow-strong:0 14px 38px rgba(0,0,0,.12);
+      --border:#e6e8ec;
+      --chip:#eaf3fb;
     }
 
-    /* Transparent page for embedding */
-    html,body{background:transparent !important}
-    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;margin:0;padding:24px;color:#1a1a1a}
+    /* ====== Base ====== */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color:var(--ink);
+      background:var(--bg);
+      -webkit-font-smoothing:antialiased;
+    }
 
-    h1{margin:0 0 12px;font-size:clamp(1.25rem,1.2rem + 1vw,1.75rem)}
+    h1{
+      margin:20px 18px 8px;
+      font-size:clamp(20px, 18px + 1.2vw, 30px);
+      line-height:1.25;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
 
-    /* Toggle */
-    .toolbar{display:flex;gap:12px;margin:6px 0 8px}
-    .view-toggle{display:inline-flex;border-radius:999px;background:#e9eef3;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
-    .view-toggle button{border:0;background:transparent;padding:8px 14px;border-radius:999px;cursor:pointer;font-weight:600;color:#334}
-    .view-toggle button[aria-pressed="true"]{background:var(--brand);color:#fff}
+    /* ====== Tabs ====== */
+    .tabs{
+      display:flex; gap:8px; align-items:center;
+      margin: 6px 18px 16px;
+    }
+    .tab{
+      appearance:none; border:1px solid var(--border);
+      background:#fff; color:var(--ink);
+      padding:8px 14px; border-radius:999px; font-weight:700;
+      font-size:14px; cursor:pointer;
+    }
+    .tab.is-active{
+      background:var(--brand); color:#fff; border-color:var(--brand);
+    }
 
-    /* Filmstrip rail + arrows */
-    .rail{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px}
-    .nav{width:40px;height:40px;border-radius:50%;border:0;cursor:pointer;background:var(--brand);color:#fff;font-size:20px;font-weight:700;display:grid;place-items:center;box-shadow:var(--card-shadow)}
-    .nav:hover{background:var(--brand-hover)} .nav:active{background:var(--brand-active)}
-    .nav.disabled{opacity:.35;pointer-events:none;filter:grayscale(1)}
-    .nav {transition: filter .15s, opacity .15s;}
-    .nav.is-disabled,.nav[aria-disabled="true"],.nav:disabled {filter: grayscale(1);opacity: .35;pointer-events: none;cursor: default;}
+    /* ====== Cards view ====== */
+    .viewport{
+      position:relative;
+      padding: 0 18px 26px;
+    }
     .strip{
-      display:grid;grid-auto-flow:column;gap:var(--gap);overflow-x:auto;padding:var(--gap);
-      scroll-snap-type:x mandatory;scroll-behavior:smooth;
-      grid-auto-columns:calc((100% - 2*var(--gap))/3);  /* 3-up */
+      display:grid;
+      grid-auto-flow:column;
+      grid-auto-columns:minmax(280px, 420px);
+      gap:22px;
+      overflow-x:auto;
+      padding:6px 56px;                  /* room for arrows */
+      scroll-snap-type:x mandatory;
+      scrollbar-width:none;
     }
-    .strip:focus{outline:none}
-    .strip::-webkit-scrollbar{height:10px}
-    .strip::-webkit-scrollbar-thumb{background:#c9d1d9;border-radius:999px}
+    .strip::-webkit-scrollbar{display:none}
 
-    /* Card */
-    .card{background:#fff;border:var(--card-border);box-shadow:var(--card-shadow);border-radius:var(--radius);scroll-snap-align:start;display:flex;flex-direction:column}
-    .img-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;border-top-left-radius:var(--radius);border-top-right-radius:var(--radius);background:#eef2f7}
-    .img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
-    .content{padding:14px 16px 16px;display:grid;gap:8px}
-    .title{font-size:clamp(1.125rem,.9rem + .6vw,1.5rem);line-height:1.25;font-weight:700}
-    .meta{font-size:.9rem;color:var(--muted)}
-    .desc{font-size:.95rem;color:#333;white-space:pre-line;line-height:1.5;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
-    .card.expanded .desc{-webkit-line-clamp:unset}
-    .toggle{background:none;border:0;color:var(--brand);font-weight:600;padding:6px 0;cursor:pointer}
-    .cta{display:inline-block;margin-top:6px;padding:10px 12px;border-radius:10px;text-decoration:none;background:var(--brand);color:#fff;font-weight:600}
-    .cta:hover{background:var(--brand-hover)} .cta:active{background:var(--brand-active)}
+    .card{
+      scroll-snap-align:start;
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow);
+      display:flex; flex-direction:column;
+      overflow:hidden;
+    }
+    .media{
+      position:relative; aspect-ratio: 16/9; overflow:hidden;
+      background:#eef2f7;
+    }
+    .media img{
+      width:100%; height:100%; object-fit:cover; display:block;
+    }
+    .content{ padding:18px 18px 20px; display:grid; gap:10px; }
+    .title{ font-size:clamp(18px, 16px + .6vw, 24px); font-weight:800; }
+    .when{ color:var(--ink-2); font-weight:600 }
+    .meta{ color:var(--muted) }
+    .desc{
+      color:var(--ink-2);
+      display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical;
+      overflow:hidden;
+      white-space:pre-line;               /* keep \n from Google body */
+      line-height:1.45;
+    }
+    .desc.is-open{ -webkit-line-clamp:unset; max-height:none }
+    .more{
+      appearance:none; background:none; border:none; padding:0;
+      color:var(--brand); font-weight:700; cursor:pointer;
+      width:max-content;
+    }
+    .cta{
+      display:inline-block; width:100%;
+      background:var(--brand); color:#fff;
+      border:0; border-radius:12px; padding:14px 16px;
+      font-weight:800; cursor:pointer; text-align:center;
+      box-shadow:0 8px 20px rgba(0,77,134,.25);
+    }
 
-    /* Agenda */
-    .agenda-wrap{max-height: 70vh;overflow: auto;padding: 12px 18px 12px 18px;scrollbar-gutter: stable both-edges;border-radius: 14px;box-sizing: border-box;}
-    .agenda{display:grid;gap:16px}
-    .agenda .row{margin: 0 4px 16px;}
-    .row{display:grid;grid-template-columns:100px 1fr;gap:16px;background:#fff;border:var(--card-border);box-shadow:var(--card-shadow);border-radius:var(--radius);padding:14px}
-    .thumb{width:100px;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#eef2f7}
-    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-    .row .title{font-size:1.15rem;font-weight:700}
-    .row .meta{margin-top:2px;color:var(--muted)}
-    .row .desc{margin-top:6px;line-height:1.35}
-    .row .desc p{margin:2px 0}
-    .row .cta{width:max-content;margin-top:10px}
+    /* arrows */
+    .nav{
+      position:absolute; top:50%; transform:translateY(-50%);
+      width:44px; height:44px; border-radius:999px;
+      border:1px solid var(--border);
+      background:#fff;
+      box-shadow:var(--shadow);
+      display:grid; place-items:center;
+      cursor:pointer;
+      transition:filter .15s, opacity .15s;
+      z-index:5;
+    }
+    .nav svg{ width:18px; height:18px; fill:var(--ink) }
+    .nav.prev{ left:18px }
+    .nav.next{ right:18px }
+    .nav.is-disabled, .nav[aria-disabled="true"], .nav:disabled{
+      filter:grayscale(1);
+      opacity:.35;
+      pointer-events:none; cursor:default;
+    }
+    /* bottom progress (same as before) */
+    .progress{
+      height:6px; margin:16px auto 0; width:min(860px, 92%);
+      border-radius:999px; background:#e9eef3; position:relative;
+    }
+    .progress > i{
+      position:absolute; inset:0; border-radius:inherit;
+      background:linear-gradient(90deg, #d6e7f6, #bcd8f0);
+      transform-origin:left center; transform:scaleX(0);
+      transition:transform .2s;
+    }
 
-    .empty{padding:24px;color:#555}
-    [hidden]{display:none !important}
+    /* ====== Agenda view ====== */
+    .agenda{
+      padding: 0 24px 28px 24px;          /* padding to avoid shadow clipping */
+      display:grid; gap:14px;
+    }
+    .row{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow);
+      padding:16px 18px;
+      display:grid; grid-template-columns:94px 1fr; gap:12px 16px;
+      align-items:start;
+    }
+    .thumb{
+      width:94px; height:94px; border-radius:12px; overflow:hidden;
+      border:1px solid var(--border); background:#eef2f7;
+    }
+    .thumb img{ width:100%; height:100%; object-fit:cover; display:block }
+    .row .title{ font-size:clamp(18px, 16px + .5vw, 22px) }
+    .row .when{ margin-top:2px }
+    .row .desc{ margin-top:8px; -webkit-line-clamp:12 }
+    .actions{ grid-column:2; margin-top:8px }
+
+    /* subtle lift on hover (cards/agenda) */
+    .card:hover, .row:hover{ box-shadow:var(--shadow-strong) }
+
+    /* utility */
+    [hidden]{ display:none !important }
   </style>
 </head>
 <body>
-  <h1>Upcoming AIT Professional Development V1</h1>
+  <h1>Upcoming AIT Professional Development</h1>
 
-  <div class="toolbar" role="tablist" aria-label="Choose layout">
-    <div class="view-toggle">
-      <button id="btn-cards"  role="tab" aria-pressed="true">Cards</button>
-      <button id="btn-agenda" role="tab" aria-pressed="false">Agenda</button>
-    </div>
+  <div class="tabs" role="tablist" aria-label="View mode">
+    <button class="tab is-active" id="tab-cards" aria-selected="true">Cards</button>
+    <button class="tab" id="tab-agenda" aria-selected="false">Agenda</button>
   </div>
 
-  <!-- Cards view -->
-  <div class="rail" id="rail">
-    <button id="prevBtn" class="nav" aria-label="Previous">‹</button>
+  <!-- ===== Cards View ===== -->
+  <section id="view-cards" class="viewport" aria-labelledby="tab-cards">
+    <button id="prevBtn" class="nav prev" aria-label="Previous" aria-disabled="true" disabled>
+      <svg viewBox="0 0 24 24"><path d="M15.4 4.6 8 12l7.4 7.4 1.4-1.4L10.8 12l6-6z"/></svg>
+    </button>
+    <button id="nextBtn" class="nav next" aria-label="Next">
+      <svg viewBox="0 0 24 24"><path d="M8.6 19.4 16 12 8.6 4.6 7.2 6l6 6-6 6z"/></svg>
+    </button>
     <div id="strip" class="strip" role="list" aria-label="Upcoming events (cards)"></div>
-    <button id="nextBtn" class="nav" aria-label="Next">›</button>
-  </div>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+    <div id="empty-cards" style="padding:14px 18px;color:#555;" hidden>Could not load events.</div>
+  </section>
 
-  <!-- Agenda view -->
-  <div id="agendaWrap" class="agenda-wrap" hidden tabindex="0" aria-label="Agenda events">
-    <div id="agenda" class="agenda" role="list" aria-label="Upcoming events (agenda)"></div>
-  </div>
-
-  <div id="empty" class="empty" hidden>No upcoming events found.</div>
+  <!-- ===== Agenda View ===== -->
+  <section id="view-agenda" class="agenda" aria-labelledby="tab-agenda" hidden>
+    <div id="agenda-list"></div>
+    <div id="empty-agenda" style="padding:6px 2px;color:#555;" hidden>Could not load events.</div>
+  </section>
 
   <script>
-    /* ===== Settings (edit these) ===== */
-    const CALENDAR_ID   = 'unkaitcalendar@gmail.com';
-    const API_KEY       = 'AIzaSyBUJxL5LLxzrzutXCSGBcv28XJX02GhSIU';
-    const MONTHS_AHEAD  = 3;
-    const MAX_RESULTS   = 50;
-    const FALLBACK_IMAGE= 'https://stephanielanik.github.io/pd-events/images/aitevent.jpg';
-    const SIGNUP_TAGS   = ['SIGNUP','REGISTER','RSVP'];  // order of preference
+    /* === CONFIG (edit if needed) ====================================== */
+    const CALENDAR_ID    = 'unkaitcalendar@gmail.com';
+    const API_KEY        = 'AIzaSyBUJxL5LLxzrzutXCSGBcv28XJX02GhSIU';
+    const MONTHS_AHEAD   = 3;
+    const MAX_RESULTS    = 50;
+    const FALLBACK_IMAGE = 'https://stephanielanik.github.io/pd-events/images/aitevent.jpg';
+    const CLAMP_LINES    = 6;                     // card description clamp
 
-    /* ===== Helpers ===== */
+    /* === Helpers ====================================================== */
     function getRange(){
-      const now=new Date(), end=new Date(); end.setMonth(end.getMonth()+MONTHS_AHEAD);
+      const now = new Date();
+      const end = new Date();
+      end.setMonth(end.getMonth() + MONTHS_AHEAD);
       return { timeMin: now.toISOString(), timeMax: end.toISOString() };
     }
+
     function htmlToText(html){
-      if(!html) return '';
-      let s=String(html)
-        .replace(/<br\s*\/?>/gi,'\n')
-        .replace(/<\/(p|div|li|ul|ol|h[1-6])>/gi,'\n')
-        .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi,'')
-        .replace(/<[^>]+>/g,'');
-      const ta=document.createElement('textarea'); ta.innerHTML=s; s=ta.value;
-      return s.replace(/\u00A0/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+      const d = document.createElement('div');
+      d.innerHTML = html || '';
+      d.querySelectorAll('style,script').forEach(el => el.remove());
+      const text = d.textContent || '';
+      // normalize nbsp & tighten multiple blank lines
+      return text.replace(/\u00A0/g,' ').replace(/\s+\n/g,'\n').trim();
     }
-    // Read URL after TAG: from HTML (<a href="…">) or plain text
-    function getTaggedUrlFromEither(descHtml, descText, tags='REGISTER'){
-      const tagList=Array.isArray(tags)?tags:[tags];
-      const html=(descHtml||'').replace(/\u00A0/g,' ');
-      const text=descText||'';
-      for(const tag of tagList){
-        const h=html.match(new RegExp(`${tag}\\s*:\\s*<a[^>]+href="([^"]+)"`,'i'));
-        if(h && h[1]){ try{ new URL(h[1]); return h[1]; }catch{} }
-        const t=text.match(new RegExp(`${tag}\\s*:\\s*(https?:\\/\\/\\S+)`,'i'));
-        if(t && t[1]){ try{ new URL(t[1]); return t[1]; }catch{} }
-      }
+
+    // Read URL from either "TAG: <a href>" or "TAG: https://"
+    function getTaggedUrlFromEither(descHtml, descText, tag){
+      const htmlRe = new RegExp(tag + '\\s*:\\s*<a[^>]+href="([^"]+)"', 'i');
+      const hm = (descHtml || '').replace(/\u00A0/g,' ').match(htmlRe);
+      if (hm && hm[1]) { try { new URL(hm[1]); return hm[1]; } catch{} }
+
+      const textRe = new RegExp(tag + '\\s*:\\s*(https?:\\/\\/\\S+)', 'i');
+      const tm = (descText || '').match(textRe);
+      if (tm && tm[1]) { try { new URL(tm[1]); return tm[1]; } catch{} }
+
       return '';
     }
-    function sanitizeDesc(text){
-      return (text||'')
-        .replace(/\s*(BANNER|REGISTER|SIGNUP|RSVP)\s*:\s*https?:\/\/\S+/gi,'')
+
+    function sanitizeDesc(descText){
+      if (!descText) return '';
+      return descText
+        .replace(/\s*(BANNER|REGISTER|SIGNUP)\s*:\s*https?:\/\/\S+/gi,'')
         .replace(/\n{3,}/g,'\n\n')
         .trim();
     }
-    function fmtRange(start,end,allDay){
-      const dOpt={weekday:'short',month:'short',day:'numeric'}, tOpt={hour:'numeric',minute:'2-digit'};
-      const s=new Date(start), e=new Date(end||start);
-      if(allDay){
-        const same=s.toDateString()===e.toDateString();
-        return same ? s.toLocaleDateString(undefined,dOpt)
-                    : `${s.toLocaleDateString(undefined,dOpt)} → ${e.toLocaleDateString(undefined,dOpt)}`;
-      }else{
-        const same=s.toDateString()===e.toDateString();
-        const d1=s.toLocaleDateString(undefined,dOpt), t1=s.toLocaleTimeString(undefined,tOpt), t2=e.toLocaleTimeString(undefined,tOpt);
-        return same ? `${d1} • ${t1}–${t2}` : `${d1} ${t1} → ${e.toLocaleDateString(undefined,dOpt)} ${t2}`;
+
+    function fmtRange(start, end, allDay){
+      const optsD = { weekday:'short', month:'short', day:'numeric' };
+      const optsT = { hour:'numeric', minute:'2-digit' };
+      const s = new Date(start), e = new Date(end || start);
+      if (allDay) {
+        const same = s.toDateString() === e.toDateString();
+        return same ? s.toLocaleDateString(undefined,optsD)
+                    : `${s.toLocaleDateString(undefined,optsD)} → ${e.toLocaleDateString(undefined,optsD)}`;
+      } else {
+        const same = s.toDateString() === e.toDateString();
+        const d1 = s.toLocaleDateString(undefined,optsD);
+        const t1 = s.toLocaleTimeString(undefined,optsT);
+        const t2 = e.toLocaleTimeString(undefined,optsT);
+        return same ? `${d1} · ${t1}–${t2}`
+                    : `${d1} ${t1} → ${e.toLocaleDateString(undefined,optsD)} ${t2}`;
       }
     }
+
     function getTimes(ev){
-      const s=ev.start?.dateTime || (ev.start?.date ? ev.start.date+'T00:00:00' : null);
-      const e=ev.end?.dateTime   || (ev.end?.date   ? ev.end.date  +'T00:00:00' : s);
-      return {start:s,end:e,allDay:!!ev.start?.date && !!ev.end?.date};
+      const s = ev.start?.dateTime || (ev.start?.date ? ev.start.date + 'T00:00:00' : null);
+      const e = ev.end?.dateTime   || (ev.end?.date   ? ev.end.date   + 'T00:00:00' : s);
+      const allDay = !!ev.start?.date && !!ev.end?.date;
+      return { start:s, end:e, allDay };
     }
 
     async function fetchEvents(){
-      const {timeMin,timeMax}=getRange();
-      const url=new URL('https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(CALENDAR_ID)+'/events');
-      url.searchParams.set('key',API_KEY);
-      url.searchParams.set('singleEvents','true');
-      url.searchParams.set('orderBy','startTime');
-      url.searchParams.set('maxResults',String(MAX_RESULTS));
-      url.searchParams.set('timeMin',timeMin);
-      url.searchParams.set('timeMax',timeMax);
-      const res=await fetch(url.toString());
-      if(!res.ok) throw new Error('Google API error '+res.status);
-      const data=await res.json();
-      return (data.items||[]).filter(ev=>!ev.status || ev.status!=='cancelled');
+      const { timeMin, timeMax } = getRange();
+      const base = 'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(CALENDAR_ID) + '/events';
+      const url = new URL(base);
+      url.searchParams.set('key', API_KEY);
+      url.searchParams.set('singleEvents', 'true');
+      url.searchParams.set('orderBy', 'startTime');
+      url.searchParams.set('maxResults', String(MAX_RESULTS));
+      url.searchParams.set('timeMin', timeMin);
+      url.searchParams.set('timeMax', timeMax);
+
+      const res = await fetch(url.toString());
+      if (!res.ok) throw new Error('Google API error ' + res.status);
+      const data = await res.json();
+      return (data.items || []).filter(ev => !ev.status || ev.status !== 'cancelled');
     }
 
-    /* ===== Render: Cards ===== */
-    function renderCards(events){
-      const strip=document.getElementById('strip');
-      const empty=document.getElementById('empty');
-      strip.innerHTML='';
-      if(!events.length){ empty.hidden=false; return; }
-      empty.hidden=true;
+    /* === Rendering: Cards ============================================ */
+    const strip = document.getElementById('strip');
+    const bar   = document.getElementById('bar');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
 
-      for(const ev of events){
-        const {start,end,allDay}=getTimes(ev);
-        const when=fmtRange(start,end,allDay);
-        const descHtml=ev.description||'';
-        const descText=htmlToText(descHtml);
-        const banner  =getTaggedUrlFromEither(descHtml,descText,'BANNER') || FALLBACK_IMAGE;
-        const signup  =getTaggedUrlFromEither(descHtml,descText,SIGNUP_TAGS);
-        const desc    =sanitizeDesc(descText);
+    function renderCards(items){
+      strip.innerHTML = '';
+      if (!items.length){
+        document.getElementById('empty-cards').hidden = false;
+        return;
+      }
+      document.getElementById('empty-cards').hidden = true;
 
-        const card=document.createElement('article'); card.className='card'; card.setAttribute('role','listitem');
+      for (const ev of items){
+        const { start, end, allDay } = getTimes(ev);
+        const when = fmtRange(start, end, allDay);
 
-        const imgWrap=document.createElement('div'); imgWrap.className='img-wrap';
-        const img=document.createElement('img'); img.loading='lazy'; img.alt=''; img.referrerPolicy='no-referrer';
-        img.src=banner; img.onerror=()=>{img.src=FALLBACK_IMAGE};
-        imgWrap.appendChild(img);
+        const descHtml = ev.description || '';
+        const descText = htmlToText(descHtml);
+        const banner   = getTaggedUrlFromEither(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
+        const signup   = getTaggedUrlFromEither(descHtml, descText, 'REGISTER') ||
+                         getTaggedUrlFromEither(descHtml, descText, 'SIGNUP');
+        const descClean = sanitizeDesc(descText);
 
-        const c=document.createElement('div'); c.className='content';
-        const title=document.createElement('div'); title.className='title'; title.textContent=ev.summary||'Untitled event';
-        const meta=document.createElement('div');  meta.className='meta';  meta.textContent=when + (ev.location?` • ${ev.location}`:'');
-        const descEl=document.createElement('div'); descEl.className='desc'; descEl.textContent=desc;
-        c.append(title,meta,descEl);
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.setAttribute('role','listitem');
 
-        if(desc.length>180){
-          const tgl=document.createElement('button');
-          tgl.type='button'; tgl.className='toggle'; tgl.textContent='Show more';
-          tgl.addEventListener('click',()=>{ card.classList.toggle('expanded'); tgl.textContent=card.classList.contains('expanded')?'Show less':'Show more'; });
-          c.appendChild(tgl);
+        const media = document.createElement('div');
+        media.className = 'media';
+        const img = document.createElement('img');
+        img.loading = 'lazy'; img.alt = '';
+        img.referrerPolicy = 'no-referrer';
+        img.src = banner;
+        img.onerror = () => { img.src = FALLBACK_IMAGE; };
+        media.appendChild(img);
+
+        const c = document.createElement('div');
+        c.className = 'content';
+
+        const h3 = document.createElement('div');
+        h3.className = 'title';
+        h3.textContent = ev.summary || 'Untitled event';
+
+        const whenEl = document.createElement('div');
+        whenEl.className = 'when';
+        whenEl.textContent = when;
+
+        if (ev.location){
+          const where = document.createElement('div');
+          where.className = 'meta';
+          where.textContent = 'Where: ' + ev.location;
+          c.append(h3, whenEl, where);
+        } else {
+          c.append(h3, whenEl);
         }
-        if(signup){
-          const a=document.createElement('a'); a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
-          c.appendChild(a);
+
+        const desc = document.createElement('div');
+        desc.className = 'desc';
+        desc.style.setProperty('-webkit-line-clamp', String(CLAMP_LINES));
+        desc.textContent = descClean;
+
+        // “Show more / less” toggler if long text
+        const needsToggle = descClean && descClean.length > 200;
+        if (needsToggle){
+          const more = document.createElement('button');
+          more.className = 'more';
+          more.textContent = 'Show more';
+          more.addEventListener('click', () => {
+            const isOpen = desc.classList.toggle('is-open');
+            more.textContent = isOpen ? 'Show less' : 'Show more';
+          });
+          c.append(desc, more);
+        } else {
+          c.append(desc);
         }
 
-        card.append(imgWrap,c);
+        if (signup){
+          const btn = document.createElement('a');
+          btn.className = 'cta';
+          btn.href = signup; btn.target = '_blank'; btn.rel = 'noopener';
+          btn.textContent = 'Sign up';
+          c.appendChild(btn);
+        }
+
+        card.append(media, c);
         strip.appendChild(card);
       }
 
-      initRailArrows();                 // (re)wire arrows after rendering
-      requestAnimationFrame(updateArrows);
+      // update nav and progress after layout paints
+      requestAnimationFrame(() => { updateNav(); updateBar(); });
     }
 
-    /* ===== Rail arrows ===== */
-    const stripEl = () => document.getElementById('strip');
-    const prevBtn = () => document.getElementById('prevBtn');
-    const nextBtn = () => document.getElementById('nextBtn');
-
-    function maxScrollLeft(el){ return el.scrollWidth - el.clientWidth; }
-
-    function updateArrows(){
-      const s=stripEl(); if(!s || s.offsetParent===null) return;  // hidden (Agenda) – skip
-      const max=maxScrollLeft(s), eps=1;
-      const atStart = s.scrollLeft <= eps;
-      const atEnd   = (max - s.scrollLeft) <= eps || max <= eps;
-
-      prevBtn().classList.toggle('disabled', atStart || max <= eps);
-      nextBtn().classList.toggle('disabled', atEnd   || max <= eps);
+    function updateBar(){
+      if (!strip) return;
+      const max = Math.max(1, strip.scrollWidth - strip.clientWidth);
+      const frac = Math.min(1, Math.max(0, strip.scrollLeft / max));
+      const visibleFrac = strip.clientWidth / strip.scrollWidth;
+      bar.style.transform = `scaleX(${Math.max(visibleFrac, frac)})`;
+      bar.style.width = `${visibleFrac * 100}%`;
+      bar.style.transform = `translateX(${frac * (100 - visibleFrac * 100)}%) scaleX(1)`;
     }
 
-    function initRailArrows(){
-      const s=stripEl();
-      prevBtn().onclick = ()=> s.scrollBy({left:-s.clientWidth,behavior:'smooth'});
-      nextBtn().onclick = ()=> s.scrollBy({left: s.clientWidth,behavior:'smooth'});
-      s.addEventListener('scroll', updateArrows, {passive:true});
-      window.addEventListener('resize', ()=>requestAnimationFrame(updateArrows));
+    function updateNav(){
+      if (!strip || !prevBtn || !nextBtn) return;
+      const atStart = strip.scrollLeft <= 1;
+      const atEnd   = Math.ceil(strip.scrollLeft + strip.clientWidth) >= strip.scrollWidth - 1;
+
+      prevBtn.classList.toggle('is-disabled', atStart);
+      nextBtn.classList.toggle('is-disabled', atEnd);
+      prevBtn.setAttribute('aria-disabled', atStart ? 'true' : 'false');
+      nextBtn.setAttribute('aria-disabled', atEnd ? 'true' : 'false');
+      prevBtn.disabled = atStart;
+      nextBtn.disabled = atEnd;
     }
 
-    /* ===== Render: Agenda ===== */
-    function renderAgenda(events){
-      const wrap=document.getElementById('agenda');
-      const empty=document.getElementById('empty');
-      wrap.innerHTML='';
-      if(!events.length){ empty.hidden=false; return; }
-      empty.hidden=true;
+    function scrollByCard(dir = 1){
+      const card = strip.querySelector('.card');
+      const gap = parseFloat(getComputedStyle(strip).gap || 0);
+      const delta = card ? (card.offsetWidth + gap) : strip.clientWidth * .9;
+      strip.scrollBy({ left: dir * delta, behavior:'smooth' });
+      setTimeout(() => { updateNav(); updateBar(); }, 380);
+    }
 
-      for(const ev of events){
-        const {start,end,allDay}=getTimes(ev);
-        const when=fmtRange(start,end,allDay);
-        const descHtml=ev.description||'';
-        const descText=htmlToText(descHtml);
-        const banner  =getTaggedUrlFromEither(descHtml,descText,'BANNER') || FALLBACK_IMAGE;
-        const signup  =getTaggedUrlFromEither(descHtml,descText,SIGNUP_TAGS);
-        const desc    =sanitizeDesc(descText);
+    strip?.addEventListener('scroll', () => { updateNav(); updateBar(); }, { passive:true });
+    window.addEventListener('resize', () => { updateNav(); updateBar(); });
 
-        const row=document.createElement('article'); row.className='row'; row.setAttribute('role','listitem');
-        const thumb=document.createElement('div'); thumb.className='thumb';
-        const img=document.createElement('img'); img.loading='lazy'; img.alt=''; img.referrerPolicy='no-referrer';
-        img.src=banner; img.onerror=()=>{img.src=FALLBACK_IMAGE}; thumb.appendChild(img);
+    prevBtn?.addEventListener('click', () => scrollByCard(-1));
+    nextBtn?.addEventListener('click', () => scrollByCard(1));
 
-        const body=document.createElement('div');
-        const title=document.createElement('div'); title.className='title'; title.textContent=ev.summary||'Untitled event';
-        const meta=document.createElement('div');  meta.className='meta';  meta.textContent=when + (ev.location?` • ${ev.location}`:'');
-        const descEl=document.createElement('div'); descEl.className='desc'; descEl.textContent=desc;
+    /* === Rendering: Agenda =========================================== */
+    function agendaRow(ev){
+      const { start, end, allDay } = getTimes(ev);
+      const when = fmtRange(start, end, allDay);
 
-        body.append(title,meta,descEl);
-        if(signup){ const a=document.createElement('a'); a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up'; body.appendChild(a); }
+      const descHtml = ev.description || '';
+      const descText = htmlToText(descHtml);
+      const banner   = getTaggedUrlFromEither(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
+      const signup   = getTaggedUrlFromEither(descHtml, descText, 'REGISTER') ||
+                       getTaggedUrlFromEither(descHtml, descText, 'SIGNUP');
+      const descClean = sanitizeDesc(descText);
 
-        row.append(thumb,body);
-        wrap.appendChild(row);
+      const row = document.createElement('article');
+      row.className = 'row';
+
+      const th = document.createElement('div'); th.className = 'thumb';
+      const img = document.createElement('img');
+      img.alt = ''; img.loading='lazy'; img.referrerPolicy='no-referrer';
+      img.src = banner; img.onerror = () => { img.src = FALLBACK_IMAGE; };
+      th.appendChild(img);
+
+      const body = document.createElement('div');
+      const h3 = document.createElement('div'); h3.className='title'; h3.textContent = ev.summary || 'Untitled event';
+      const whenEl = document.createElement('div'); whenEl.className='when'; whenEl.textContent = when;
+
+      const bits = [];
+      if (ev.location) bits.push('Where: ' + ev.location);
+      const format = descClean.match(/(^|\n)Format:\s*([^\n]+)/i);
+      if (format) bits.push(format[0].trim());
+
+      const info = document.createElement('div');
+      info.style.color='var(--ink-2)';
+      info.style.marginTop='6px';
+      info.style.whiteSpace='pre-line';
+      info.textContent = bits.join('\n');
+
+      const desc = document.createElement('div');
+      desc.className='desc'; desc.style.marginTop='8px';
+      desc.textContent = descClean.replace(/(^|\n)Format:\s*[^\n]+/i,'').trim();
+
+      body.append(h3, whenEl, info, desc);
+
+      const actions = document.createElement('div');
+      actions.className='actions';
+      if (signup){
+        const btn = document.createElement('a');
+        btn.className='cta'; btn.style.width='unset'; btn.textContent='Sign up';
+        btn.href=signup; btn.target='_blank'; btn.rel='noopener';
+        actions.appendChild(btn);
       }
+
+      row.append(th, body, actions);
+      return row;
     }
 
-    /* ===== View switching ===== */
-    let EVENTS=[], CURRENT='cards';
+    function renderAgenda(items){
+      const list = document.getElementById('agenda-list');
+      list.innerHTML = '';
+      if (!items.length){
+        document.getElementById('empty-agenda').hidden = false;
+        return;
+      }
+      document.getElementById('empty-agenda').hidden = true;
+      const frag = document.createDocumentFragment();
+      items.forEach(ev => frag.appendChild(agendaRow(ev)));
+      list.appendChild(frag);
+    }
+
+    /* === Tabs ========================================================= */
+    const tabCards  = document.getElementById('tab-cards');
+    const tabAgenda = document.getElementById('tab-agenda');
+    const viewCards = document.getElementById('view-cards');
+    const viewAgenda= document.getElementById('view-agenda');
+
     function setView(mode){
-      if(mode===CURRENT) return; CURRENT=mode;
-      const rail=document.getElementById('rail');
-      const agendaWrap=document.getElementById('agendaWrap');
-      document.getElementById('btn-cards').setAttribute('aria-pressed', mode==='cards');
-      document.getElementById('btn-agenda').setAttribute('aria-pressed', mode==='agenda');
-      const showCards = mode==='cards';
-      rail.hidden=!showCards;
-      agendaWrap.hidden=showCards;
-      if(showCards){ renderCards(EVENTS); }
-      else{ renderAgenda(EVENTS); }
+      const isCards = mode === 'cards';
+      tabCards.classList.toggle('is-active', isCards);
+      tabAgenda.classList.toggle('is-active', !isCards);
+      tabCards.setAttribute('aria-selected', String(isCards));
+      tabAgenda.setAttribute('aria-selected', String(!isCards));
+      viewCards.hidden = !isCards;
+      viewAgenda.hidden = isCards;
+      if (isCards) { updateNav(); updateBar(); }
     }
-    document.getElementById('btn-cards').addEventListener('click',()=>setView('cards'));
-    document.getElementById('btn-agenda').addEventListener('click',()=>setView('agenda'));
 
-    /* ===== Boot ===== */
-    (async()=>{
+    tabCards.addEventListener('click', () => setView('cards'));
+    tabAgenda.addEventListener('click', () => setView('agenda'));
+
+    /* === Boot ========================================================= */
+    (async () => {
       try{
-        EVENTS = await fetchEvents();
-        renderCards(EVENTS); // default
+        const items = await fetchEvents();
+        renderCards(items);
+        renderAgenda(items);
+        setView('cards'); // default
       }catch(err){
-        const empty=document.getElementById('empty');
-        empty.hidden=false;
-        empty.textContent='Could not load events. ('+err.message+')';
+        document.getElementById('empty-cards').hidden = false;
+        document.getElementById('empty-cards').textContent = 'Could not load events. ('+ err.message +')';
+        document.getElementById('empty-agenda').hidden = false;
+        document.getElementById('empty-agenda').textContent = 'Could not load events. ('+ err.message +')';
         console.error(err);
       }
     })();
