@@ -55,7 +55,7 @@
 }
 
   /* cards */
-  .card{ background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); }
+  .card{ background:var(--card); border-radius:var(--radius); box-shadow:0 0 0 1px rgba(0,0,0,.07),var(--shadow); }
   .img-wrap{ position:relative; aspect-ratio:16/9; overflow:hidden;
              border-top-left-radius:var(--radius); border-top-right-radius:var(--radius);
              background:#e8eef5; }
@@ -85,7 +85,9 @@
   .nav[disabled]{ background:#d5dbe3; color:#fff; cursor:not-allowed; opacity:.85; }
 
   /* agenda */
-  .agenda-viewport{ max-height:70vh; overflow:auto;padding: 0 var(--gap);box-sizing: border-box;}   /* <-- self-scrolling panel */
+  .agenda-viewport{ max-height:70vh; overflow:auto;padding: 0 var(--gap);box-sizing: border-box;box-shadow:
+    0 0 0 1px rgba(0,0,0,.07),
+    var(--shadow);}   /* <-- self-scrolling panel */
   .agenda-wrap{ padding-top:6px;padding-bottom: 12px;}                      /* small vertical breathing room */
   .row{ display:grid; grid-template-columns:96px 1fr; gap:16px;
         background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
@@ -106,7 +108,7 @@
   <!-- heading + tabs aligned to card rail -->
   <div class="widget-shell">
     <div class="rail-margins">
-      <h1>Upcoming AIT Professional Development V2</h1>
+      <h1>Upcoming AIT Professional Development V3</h1>
       <div class="tabs" role="tablist" aria-label="View">
         <button id="tabCards"  class="tab" role="tab" aria-selected="true"  aria-controls="panelCards">Cards</button>
         <button id="tabAgenda" class="tab" role="tab" aria-selected="false" aria-controls="panelAgenda">Agenda</button>
