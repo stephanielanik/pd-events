@@ -44,6 +44,11 @@
     .strip::-webkit-scrollbar-thumb{background:#c9d1d9;border-radius:999px}
 
     .card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);scroll-snap-align:start;display:flex;flex-direction:column}
+    /* Card description: keep heights consistent */
+    .card .desc{display: -webkit-box;-webkit-line-clamp: 6;          /* ← change to 4–8 lines to taste */
+  -webkit-box-orient: vertical;overflow: hidden;}
+    .card.expanded .desc{ -webkit-line-clamp: unset; }   /* lift the clamp */
+    .card .toggle{background: none; border: 0; color: #004D86; font-weight: 600;padding: 6px 0; cursor: pointer;}
     .img-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;border-top-left-radius:var(--radius);border-top-right-radius:var(--radius);background:#eef2f7}
     .img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
     .content{padding:14px 16px 16px;display:grid;gap:8px}
@@ -90,7 +95,7 @@
 </head>
 <body>
   <div class="section">
-    <h1>Upcoming AIT Professional Development V4</h1>
+    <h1>Upcoming AIT Professional Development V5</h1>
 
     <div class="toolbar">
       <div class="view-toggle" role="tablist" aria-label="Choose layout">
@@ -227,7 +232,17 @@
         const meta=document.createElement('div'); meta.className='meta'; meta.textContent=whenText + (ev.location?` • ${ev.location}`:'');
         const desc=document.createElement('div'); desc.className='desc'; desc.textContent=descClean;
         c.append(title,meta,desc);
-
+if (descClean.length > 180) {                     // rough threshold; tweak as needed
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'toggle';
+  toggle.textContent = 'Show more';
+  toggle.addEventListener('click', () => {
+    card.classList.toggle('expanded');
+    toggle.textContent = card.classList.contains('expanded') ? 'Show less' : 'Show more';
+  });
+  c.appendChild(toggle); // 'c' is the content container in your card
+}
         if(signup){
           const a=document.createElement('a'); a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
           c.appendChild(a);
