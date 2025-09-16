@@ -3,26 +3,28 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AIT Professional Development Opportunities – Cards</title>
+  <title>AIT Professional Development</title>
   <style>
     :root{
-      --gap: 16px;
-      --radius: 16px;
-      --shadow: 0 8px 24px rgba(0,0,0,.08);
-      --brand: #004D86;
-      --brand-hover:#003a66;
-      --brand-active:#002f52;
-      --columns: 3;                /* show 3 at a time */
-      --rail-max: 1200px;          /* max width of strip area */
+      --gap:16px; --radius:16px; --shadow:0 8px 24px rgba(0,0,0,.08);
+      --brand:#004D86; --brand-hover:#003a66; --brand-active:#002f52;
+      --columns:3; --rail-max:1200px;
+      --surface:#fff; --page:#fafbfc; --muted:#445;
     }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:var(--page);color:#1a1a1a}
+    .section{max-width:var(--rail-max);margin:0 auto;padding:24px}
+    h1{margin:0 0 12px;font-size:clamp(1.25rem,1.2rem + 1vw,1.75rem);text-align:left}
 
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:24px;background:#fafbfc;color:#1a1a1a}
-    h1{font-size:clamp(1.25rem,1.2rem + 1vw,1.75rem);margin:0 0 12px}
+    /* Toggle */
+    .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:4px;margin-bottom:8px}
+    .view-toggle{display:inline-flex;border-radius:999px;background:#e9eef3;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
+    .view-toggle button{
+      border:0;background:transparent;padding:8px 14px;border-radius:999px;cursor:pointer;font-weight:600;color:#334
+    }
+    .view-toggle button[aria-pressed="true"]{background:var(--brand);color:#fff}
 
-    /* Rail with arrows */
-    .section { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-    .section > h1 { text-align: left; }  /* stays left within the centered block */
-    .rail{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.5rem;max-width:var(--rail-max);margin:0 auto}
+    /* Rail with arrows (Cards view) */
+    .rail{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.5rem}
     .nav{
       width:40px;height:40px;border-radius:50%;border:0;cursor:pointer;
       background:var(--brand);color:#fff;font-size:20px;font-weight:700;
@@ -32,84 +34,90 @@
     .nav:active{background:var(--brand-active)}
     .nav[disabled]{opacity:.35;pointer-events:none}
 
-    /* Filmstrip */
     .strip{
-      display:grid;
-      grid-auto-flow:column;
-      gap:var(--gap);
-      overflow-x:auto;
-      padding:var(--gap);
-      scroll-snap-type:x mandatory;
-      /* EXACT 3-UP math: each card takes 1/3 of the viewport minus gaps */
+      display:grid;grid-auto-flow:column;gap:var(--gap);overflow-x:auto;padding:var(--gap);
+      scroll-snap-type:x mandatory;scroll-behavior:smooth;
       grid-auto-columns:calc((100% - (var(--columns) - 1)*var(--gap)) / var(--columns));
-      scroll-behavior:smooth;
     }
     .strip:focus{outline:none}
     .strip::-webkit-scrollbar{height:10px}
     .strip::-webkit-scrollbar-thumb{background:#c9d1d9;border-radius:999px}
 
-    .card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);scroll-snap-align:start;display:flex;flex-direction:column}
+    .card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);scroll-snap-align:start;display:flex;flex-direction:column}
     .img-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;border-top-left-radius:var(--radius);border-top-right-radius:var(--radius);background:#eef2f7}
     .img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
-
     .content{padding:14px 16px 16px;display:grid;gap:8px}
     .title{font-weight:600;line-height:1.25}
-    .meta{font-size:.9rem;color:#445}
+    .meta{font-size:.9rem;color:var(--muted)}
     .desc{font-size:.95rem;color:#333;white-space:pre-line;line-height:1.5}
-
     .cta{display:inline-block;margin-top:6px;padding:10px 12px;border-radius:10px;text-decoration:none;background:var(--brand);color:#fff;font-weight:600}
-    .cta:hover{background:var(--brand-hover)}
-    .cta:active{background:var(--brand-active)}
+    .cta:hover{background:var(--brand-hover)} .cta:active{background:var(--brand-active)}
 
-    .empty{padding:24px;color:#555;max-width:var(--rail-max);margin:0 auto}
+    .empty{padding:24px;color:#555}
+
+    /* Agenda view */
+    .agenda{display:grid;gap:16px}
+    .row{display:grid;grid-template-columns:100px 1fr;gap:16px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
+    .thumb{width:100px;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#eef2f7}
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .row .title{font-size:1.15rem}
+    .row .meta{margin-top:2px}
+    .row .desc{margin-top:6px}
+    .row .cta{width:max-content;margin-top:10px}
+
+    /* Hide containers when not in use */
+    [hidden]{display:none !important}
   </style>
 </head>
 <body>
- <div class="section">
-   <h1>Upcoming AIT Professional Development V1</h1>
+  <div class="section">
+    <h1>Upcoming AIT Professional Development</h1>
 
-  <div class="rail">
-    <button class="nav prev" aria-label="Previous events">‹</button>
-    <div id="strip" class="strip" role="list" aria-label="Upcoming events"></div>
-    <button class="nav next" aria-label="Next events">›</button>
+    <div class="toolbar">
+      <div class="view-toggle" role="tablist" aria-label="Choose layout">
+        <button id="btn-cards"  role="tab" aria-selected="true"  aria-pressed="true">Cards</button>
+        <button id="btn-agenda" role="tab" aria-selected="false" aria-pressed="false">Agenda</button>
+      </div>
+    </div>
+
+    <!-- Cards view -->
+    <div class="rail" id="rail">
+      <button class="nav prev" aria-label="Previous events">‹</button>
+      <div id="strip" class="strip" role="list" aria-label="Upcoming events"></div>
+      <button class="nav next" aria-label="Next events">›</button>
+    </div>
+
+    <!-- Agenda view -->
+    <div id="agenda" class="agenda" hidden></div>
+
+    <div id="empty" class="empty" hidden>No upcoming events found.</div>
   </div>
 
-  <div id="empty" class="empty" hidden>No upcoming events found.</div>
- </div>
   <script>
-    // === EDIT THESE (kept from your file) ===
+    // === Your settings ===
     const CALENDAR_ID   = 'unkaitcalendar@gmail.com';
     const API_KEY       = 'AIzaSyBUJxL5LLxzrzutXCSGBcv28XJX02GhSIU';
     const MONTHS_AHEAD  = 3;
     const MAX_RESULTS   = 50;
     const FALLBACK_IMAGE= 'https://stephanielanik.github.io/pd-events/images/aitevent.jpg';
 
-    // Helpers
+    // --- Helpers ---
     function getRange(){
       const now = new Date();
       const end = new Date(); end.setMonth(end.getMonth()+MONTHS_AHEAD);
       return { timeMin: now.toISOString(), timeMax: end.toISOString() };
     }
-   // Convert Calendar HTML to plain text while preserving paragraph breaks
-function htmlToText(html) {
-  if (!html) return '';
-  // 1) Add line breaks for block-level boundaries and <br>
-  let s = String(html)
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/(p|div|li|ul|ol|h[1-6])>/gi, '\n');
-  // 2) Drop style/script and any remaining tags
-  s = s.replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, '')
-       .replace(/<[^>]+>/g, '');
-  // 3) Decode HTML entities
-  const ta = document.createElement('textarea');
-  ta.innerHTML = s;
-  s = ta.value;
-  // 4) Clean up spacing
-  return s
-    .replace(/\u00A0/g, ' ')     // nbsp -> space
-    .replace(/\n{3,}/g, '\n\n')  // collapse >2 blank lines
-    .trim();
-}
+    // Preserve line breaks from Calendar HTML
+    function htmlToText(html){
+      if(!html) return '';
+      let s = String(html)
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/(p|div|li|ul|ol|h[1-6])>/gi, '\n')
+        .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi,'')
+        .replace(/<[^>]+>/g,'');
+      const ta = document.createElement('textarea'); ta.innerHTML = s; s = ta.value;
+      return s.replace(/\u00A0/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+    }
     function getTaggedUrlFromEither(descHtml, descText, tag){
       const htmlRe=new RegExp(tag+'\\s*:\\s*<a[^>]+href="([^"]+)"','i');
       const hm=(descHtml||'').replace(/\u00A0/g,' ').match(htmlRe);
@@ -142,6 +150,13 @@ function htmlToText(html) {
         return same ? `${d1} • ${t1}–${t2}` : `${d1} ${t1} → ${e.toLocaleDateString(undefined,optsD)} ${t2}`;
       }
     }
+    function getTimes(ev){
+      const s=ev.start?.dateTime || (ev.start?.date ? ev.start.date+'T00:00:00' : null);
+      const e=ev.end?.dateTime   || (ev.end?.date   ? ev.end.date  +'T00:00:00' : s);
+      const allDay=!!ev.start?.date && !!ev.end?.date;
+      return {start:s,end:e,allDay};
+    }
+
     async function fetchEvents(){
       const {timeMin,timeMax}=getRange();
       const base='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(CALENDAR_ID)+'/events';
@@ -155,16 +170,11 @@ function htmlToText(html) {
       const res=await fetch(url.toString());
       if(!res.ok) throw new Error('Google API error '+res.status);
       const data=await res.json();
-      return (data.items||[]).filter(ev=>!ev.status||ev.status!=='cancelled');
-    }
-    function getTimes(ev){
-      const s=ev.start?.dateTime || (ev.start?.date ? ev.start.date+'T00:00:00' : null);
-      const e=ev.end?.dateTime   || (ev.end?.date   ? ev.end.date  +'T00:00:00' : s);
-      const allDay=!!ev.start?.date && !!ev.end?.date;
-      return {start:s,end:e,allDay};
+      return (data.items||[]).filter(ev=>!ev.status || ev.status!=='cancelled');
     }
 
-    function render(events){
+    // ---- Render: Cards view ----
+    function renderCards(events){
       const strip=document.getElementById('strip');
       const empty=document.getElementById('empty');
       strip.innerHTML='';
@@ -174,7 +184,6 @@ function htmlToText(html) {
       for(const ev of events){
         const {start,end,allDay}=getTimes(ev);
         const whenText=fmtRange(start,end,allDay);
-
         const descHtml = ev.description || '';
         const descText = htmlToText(descHtml);
         const banner   = getTaggedUrlFromEither(descHtml,descText,'BANNER') || FALLBACK_IMAGE;
@@ -182,11 +191,9 @@ function htmlToText(html) {
         const descClean= sanitizeDesc(descText);
 
         const card=document.createElement('article');
-        card.className='card';
-        card.setAttribute('role','listitem');
+        card.className='card'; card.setAttribute('role','listitem');
 
-        const imgWrap=document.createElement('div');
-        imgWrap.className='img-wrap';
+        const imgWrap=document.createElement('div'); imgWrap.className='img-wrap';
         const img=document.createElement('img');
         img.loading='lazy'; img.alt=''; img.referrerPolicy='no-referrer';
         img.src=banner; img.onerror=()=>{ img.src=FALLBACK_IMAGE; };
@@ -207,43 +214,107 @@ function htmlToText(html) {
         strip.appendChild(card);
       }
 
-      initRailNav(); // wire up arrows after cards exist
+      initRailNav();
     }
 
-    // ---- Filmstrip nav (Prev/Next) ----
     function initRailNav(){
       const strip = document.getElementById('strip');
       const prev  = document.querySelector('.nav.prev');
       const next  = document.querySelector('.nav.next');
-
       if(!strip || !prev || !next) return;
 
       const getGap = ()=> parseFloat(getComputedStyle(strip).columnGap || getComputedStyle(strip).gap) || 16;
-      const step = ()=> {
+      const step   = ()=> {
         const first = strip.querySelector('.card');
-        if (!first) return 0;
-        return first.getBoundingClientRect().width + getGap(); // one card width
+        if(!first) return 0;
+        return first.getBoundingClientRect().width + getGap();
       };
-
       function updateNav(){
-        // disable prev at left edge; disable next at right edge
         prev.disabled = strip.scrollLeft <= 0;
         next.disabled = strip.scrollLeft + strip.clientWidth >= strip.scrollWidth - 1;
       }
-
       prev.onclick = ()=> strip.scrollBy({ left: -step(), behavior:'smooth' });
       next.onclick = ()=> strip.scrollBy({ left:  step(), behavior:'smooth' });
-
       strip.addEventListener('scroll', updateNav, { passive:true });
       window.addEventListener('resize', updateNav);
-      // kick once
       updateNav();
     }
 
+    // ---- Render: Agenda view ----
+    function renderAgenda(events){
+      const wrap = document.getElementById('agenda');
+      const empty=document.getElementById('empty');
+      wrap.innerHTML='';
+      if(!events.length){ empty.hidden=false; return; }
+      empty.hidden=true;
+
+      for(const ev of events){
+        const {start,end,allDay}=getTimes(ev);
+        const whenText=fmtRange(start,end,allDay);
+        const descHtml = ev.description || '';
+        const descText = htmlToText(descHtml);
+        const banner   = getTaggedUrlFromEither(descHtml,descText,'BANNER') || FALLBACK_IMAGE;
+        const signup   = getTaggedUrlFromEither(descHtml,descText,'REGISTER');
+        const descClean= sanitizeDesc(descText);
+
+        const row=document.createElement('article'); row.className='row';
+
+        const thumb=document.createElement('div'); thumb.className='thumb';
+        const img=document.createElement('img');
+        img.loading='lazy'; img.alt=''; img.referrerPolicy='no-referrer';
+        img.src=banner; img.onerror=()=>{ img.src=FALLBACK_IMAGE; };
+        thumb.appendChild(img);
+
+        const body=document.createElement('div'); body.className='body';
+        const title=document.createElement('div'); title.className='title'; title.textContent=ev.summary||'Untitled event';
+        const meta=document.createElement('div'); meta.className='meta'; meta.textContent=whenText + (ev.location?` • ${ev.location}`:'');
+        const desc=document.createElement('div'); desc.className='desc'; desc.textContent=descClean;
+
+        body.append(title,meta,desc);
+
+        if(signup){
+          const a=document.createElement('a'); a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
+          body.appendChild(a);
+        }
+
+        row.append(thumb, body);
+        wrap.appendChild(row);
+      }
+    }
+
+    // ---- View switching ----
+    let EVENTS = [];
+    let CURRENT_VIEW = 'cards';
+
+    function setView(mode){
+      if(mode === CURRENT_VIEW) return;
+      CURRENT_VIEW = mode;
+
+      const btnCards  = document.getElementById('btn-cards');
+      const btnAgenda = document.getElementById('btn-agenda');
+      const rail   = document.getElementById('rail');
+      const strip  = document.getElementById('strip');
+      const agenda = document.getElementById('agenda');
+
+      const isCards = mode === 'cards';
+      rail.hidden   = !isCards;
+      agenda.hidden =  isCards;
+
+      btnCards.setAttribute('aria-pressed', isCards);
+      btnAgenda.setAttribute('aria-pressed', !isCards);
+
+      if(isCards) { renderCards(EVENTS); }
+      else        { renderAgenda(EVENTS); }
+    }
+
+    document.getElementById('btn-cards').addEventListener('click', ()=> setView('cards'));
+    document.getElementById('btn-agenda').addEventListener('click', ()=> setView('agenda'));
+
+    // ---- Boot ----
     (async()=>{
       try{
-        const items=await fetchEvents();
-        render(items);
+        EVENTS = await fetchEvents();
+        renderCards(EVENTS);                 // default
       }catch(err){
         const empty=document.getElementById('empty');
         empty.hidden=false;
