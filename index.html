@@ -44,7 +44,7 @@
     const API_KEY = 'AIzaSyBUJxL5LLxzrzutXCSGBcv28XJX02GhSIU';
     const MONTHS_AHEAD = 3; // how far to show
     const MAX_RESULTS = 50;
-    const FALLBACK_IMAGE = 'https://stephanielanik.github.io/pd-events/images/aitevent.jpg'; // change to your hosted fallback
+    const FALLBACK_IMAGE = 'https://via.placeholder.com/1200x675.png?text=Event+Banner'; // change to your hosted fallback
 
     // === Helpers ===
     function getRange() {
@@ -56,28 +56,36 @@
       };
     }
 
-    function htmlToText(html) {
-      const d = document.createElement('div'); d.innerHTML = html || ''; 
-      d.querySelectorAll('style,script').forEach(el => el.remove());
-      const text = d.textContent || '';
-      return text.replace(/\u00A0/g, ' ').replace(/\s+\n/g, '\n').trim();
-    }
-
-    function getTaggedUrl(desc, tag) {
-  if (!desc) return '';
-  // Match TAG: <url> anywhere (not just at line start)
-  const re = new RegExp(tag + '\\s*:\\s*(https?:\\/\\/\\S+)', 'i');
-  const m = desc.match(re);
-  if (!m) return '';
-  try { new URL(m[1]); return m[1]; } catch { return ''; }
+   function htmlToText(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html || '';
+  d.querySelectorAll('style,script').forEach(el => el.remove());
+  const text = d.textContent || '';
+  return text.replace(/\u00A0/g, ' ').replace(/\s+\n/g, '\n').trim();
 }
 
-   function sanitizeDesc(desc) {
-  if (!desc) return '';
-  // Remove any TAG: <url> occurrences (BANNER or REGISTER), even inline
-  return desc
-    .replace(/\\s*(BANNER|REGISTER)\\s*:\\s*https?:\\/\\/\\S+/gi, '')
-    .replace(/\\n{3,}/g, '\\n\\n')
+    // Try to read the tag URL from the original HTML (href) OR from plain text
+function getTaggedUrlFromEither(descHtml, descText, tag) {
+  // HTML form: TAG: <a href="https://…">
+  const htmlRe = new RegExp(tag + '\\s*:\\s*<a[^>]+href="([^"]+)"', 'i');
+  const hm = (descHtml || '').replace(/\u00A0/g, ' ').match(htmlRe);
+  if (hm && hm[1]) {
+    try { new URL(hm[1]); return hm[1]; } catch {}
+  }
+  // Text form: TAG: https://…
+  const textRe = new RegExp(tag + '\\s*:\\s*(https?:\\/\\/\\S+)', 'i');
+  const tm = (descText || '').match(textRe);
+  if (tm && tm[1]) {
+    try { new URL(tm[1]); return tm[1]; } catch {}
+  }
+  return '';
+}
+// Remove any TAG: <url> occurrences from the visible description
+function sanitizeDesc(descText) {
+  if (!descText) return '';
+  return descText
+    .replace(/\s*(BANNER|REGISTER)\s*:\s*https?:\/\/\S+/gi, '')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
@@ -133,10 +141,10 @@
       for (const ev of events) {
         const { start, end, allDay } = getTimes(ev);
         const when = fmtRange(start, end, allDay);
-        const descHtml = ev.description || '';
+       const descHtml = ev.description || '';
         const descText = htmlToText(descHtml);
-        const banner = getTaggedUrl(descText, 'BANNER') || FALLBACK_IMAGE;
-        const signup = getTaggedUrl(descText, 'REGISTER');
+        const banner = getTaggedUrlFromEither(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
+        const signup = getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
         const descClean = sanitizeDesc(descText);
 
         const card = document.createElement('article');
@@ -147,11 +155,11 @@
         imgWrap.className = 'img-wrap';
         
         const img = document.createElement('img');
-img.loading = 'lazy';
-img.alt = '';
-img.referrerPolicy = 'no-referrer';   // helps with some hosts
-img.src = banner;
-img.onerror = () => { img.src = FALLBACK_IMAGE; }; // use fallback if banner fails
+        img.loading = 'lazy';
+        img.alt = '';
+        img.referrerPolicy = 'no-referrer';   // helps with some hosts
+        img.src = banner;
+        img.onerror = () => { img.src = FALLBACK_IMAGE; }; // use fallback if banner fails
 
         const c = document.createElement('div');
         c.className = 'content';
