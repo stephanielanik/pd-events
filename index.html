@@ -20,8 +20,8 @@
     h1{font-size:clamp(1.25rem,1.2rem + 1vw,1.75rem);margin:0 0 12px}
 
     /* Rail with arrows */
-    .section { max-width: var(--rail-max); margin: 0 auto; padding: 0 24px; }
-
+    .section { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .section > h1 { text-align: left; }  /* stays left within the centered block */
     .rail{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.5rem;max-width:var(--rail-max);margin:0 auto}
     .nav{
       width:40px;height:40px;border-radius:50%;border:0;cursor:pointer;
@@ -90,12 +90,26 @@
       const end = new Date(); end.setMonth(end.getMonth()+MONTHS_AHEAD);
       return { timeMin: now.toISOString(), timeMax: end.toISOString() };
     }
-    function htmlToText(html){
-      const d=document.createElement('div'); d.innerHTML=html||'';
-      d.querySelectorAll('style,script').forEach(el=>el.remove());
-      const text=d.textContent||'';
-      return text.replace(/\u00A0/g,' ').replace(/\s+\n/g,'\n').trim();
-    }
+   // Convert Calendar HTML to plain text while preserving paragraph breaks
+function htmlToText(html) {
+  if (!html) return '';
+  // 1) Add line breaks for block-level boundaries and <br>
+  let s = String(html)
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|li|ul|ol|h[1-6])>/gi, '\n');
+  // 2) Drop style/script and any remaining tags
+  s = s.replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, '')
+       .replace(/<[^>]+>/g, '');
+  // 3) Decode HTML entities
+  const ta = document.createElement('textarea');
+  ta.innerHTML = s;
+  s = ta.value;
+  // 4) Clean up spacing
+  return s
+    .replace(/\u00A0/g, ' ')     // nbsp -> space
+    .replace(/\n{3,}/g, '\n\n')  // collapse >2 blank lines
+    .trim();
+}
     function getTaggedUrlFromEither(descHtml, descText, tag){
       const htmlRe=new RegExp(tag+'\\s*:\\s*<a[^>]+href="([^"]+)"','i');
       const hm=(descHtml||'').replace(/\u00A0/g,' ').match(htmlRe);
