@@ -15,7 +15,8 @@
     .content { padding: 14px 16px 16px; display: grid; gap: 8px; }
     .title { font-weight: 600; line-height: 1.25; }
     .meta { font-size: .9rem; color: #445; }
-    .desc { font-size: .95rem; color: #333; max-height: 5.2em; overflow: clip; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; }
+    .desc { font-size: .95rem; color: #333; max-height: 5.2em; overflow: clip; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; white-space: pre-line;   /* turn \n into <br> */
+  line-height: 1.5; }
     .cta { display: inline-block; margin-top: 6px; padding: 10px 12px; border-radius: 10px; text-decoration: none; background:#0b6efd; color: #fff; font-weight: 600; }
     .empty { padding: 24px; color: #555; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
@@ -146,6 +147,33 @@ function sanitizeDesc(descText) {
         const banner = getTaggedUrlFromEither(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
         const signup = getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
         const descClean = sanitizeDesc(descText);
+        const content = document.createElement('div');
+        content.className = 'content';
+
+        const h3 = document.createElement('h3');
+        h3.textContent = ev.summary;
+
+        const when = document.createElement('div');
+        when.className = 'when';
+        when.textContent = /* your formatted date/time */;
+
+        content.append(h3, when);
+// description
+const descEl = document.createElement('div');
+descEl.className = 'desc';
+descEl.textContent = descClean; // keep it as text so \n survive
+content.appendChild(descEl);
+
+// (optional) CTA button after description
+if (signup) {
+  const btn = document.createElement('a');
+  btn.href = signup;
+  btn.target = '_blank';
+  btn.rel = 'noopener';
+  btn.className = 'cta';
+  btn.textContent = 'Sign up';
+  content.appendChild(btn);
+}
 
         const card = document.createElement('article');
         card.className = 'card';
@@ -178,14 +206,16 @@ function sanitizeDesc(descText) {
         desc.textContent = descClean;
 
         c.append(title, meta, desc);
-
-        if (signup) {
-          const a = document.createElement('a');
-          a.className = 'cta';
-          a.href = signup; a.target = '_blank'; a.rel = 'noopener';
-          a.textContent = 'Sign up';
-          c.appendChild(a);
-        }
+        
+if (signup) {
+  const btn = document.createElement('a');
+  btn.href = signup;
+  btn.target = '_blank';
+  btn.rel = 'noopener';
+  btn.className = 'cta';
+  btn.textContent = 'Sign up';
+  content.appendChild(btn);
+}
 
         card.append(imgWrap, c);
         strip.appendChild(card);
