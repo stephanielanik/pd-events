@@ -95,7 +95,7 @@
 </head>
 <body>
   <div class="section">
-    <h1>Upcoming AIT Professional Development V5</h1>
+    <h1>Upcoming AIT Professional Development</h1>
 
     <div class="toolbar">
       <div class="view-toggle" role="tablist" aria-label="Choose layout">
@@ -126,6 +126,8 @@
     const MONTHS_AHEAD  = 3;
     const MAX_RESULTS   = 50;
     const FALLBACK_IMAGE= 'https://stephanielanik.github.io/pd-events/images/aitevent.jpg';
+    const SIGNUP_TAGS = ['SIGNUP', 'REGISTER', 'RSVP']; // order of preference
+
 
     // --- Helpers ---
     function getRange(){
@@ -144,24 +146,31 @@
       const ta = document.createElement('textarea'); ta.innerHTML = s; s = ta.value;
       return s.replace(/\u00A0/g,' ').replace(/\n{3,}/g,'\n\n').trim();
     }
-    function getTaggedUrlFromEither(descHtml, descText, tag){
-      const htmlRe=new RegExp(tag+'\\s*:\\s*<a[^>]+href="([^"]+)"','i');
-      const hm=(descHtml||'').replace(/\u00A0/g,' ').match(htmlRe);
-      if(hm&&hm[1]){ try{ new URL(hm[1]); return hm[1]; }catch{} }
-      const textRe=new RegExp(tag+'\\s*:\\s*(https?:\\/\\/\\S+)','i');
-      const tm=(descText||'').match(textRe);
-      if(tm&&tm[1]){ try{ new URL(tm[1]); return tm[1]; }catch{} }
-      return '';
-    }
+    function getTaggedUrl(descHtml, descText, tags) {
+  const html = (descHtml || '').replace(/\u00A0/g, ' ');
+  const text = (descText || '');
+
+  for (const tag of tags) {
+    // HTML form: TAG: <a href="...">
+    const htmlRe = new RegExp(`${tag}\\s*:\\s*<a[^>]+href="([^"]+)"`, 'i');
+    const hm = html.match(htmlRe);
+    if (hm && hm[1]) { try { new URL(hm[1]); return hm[1]; } catch {} }
+
+    // Text form: TAG: https://…
+    const textRe = new RegExp(`${tag}\\s*:\\s*(https?:\\/\\/\\S+)`, 'i');
+    const tm = text.match(textRe);
+    if (tm && tm[1]) { try { new URL(tm[1]); return tm[1]; } catch {} }
+  }
+  return '';
+}
     function sanitizeDesc(descText) {
   if (!descText) return '';
   return descText
-    .replace(/\s*(BANNER|REGISTER)\s*:\s*https?:\/\/\S+/gi, '') // strip tag lines
-    .replace(/\r\n/g, '\n')     // normalize line endings
-    .replace(/\n{2,}/g, '\n')   // <-- collapse blank lines
-    .replace(/[ \t]+\n/g, '\n') // trim trailing spaces on lines
+    .replace(/\s*(BANNER|REGISTER|SIGNUP|RSVP)\s*:\s*https?:\/\/\S+/gi, '')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
+
     function fmtRange(start,end,allDay){
       const optsD={weekday:'short',month:'short',day:'numeric'};
       const optsT={hour:'numeric',minute:'2-digit'};
@@ -215,7 +224,7 @@
         const descHtml = ev.description || '';
         const descText = htmlToText(descHtml);
         const banner   = getTaggedUrlFromEither(descHtml,descText,'BANNER') || FALLBACK_IMAGE;
-        const signup   = getTaggedUrlFromEither(descHtml,descText,'REGISTER');
+        const signup   = getTaggedUrlFromEither(descHtml,descText,SIGNUP_TAGS);
         const descClean= sanitizeDesc(descText);
 
         const card=document.createElement('article');
