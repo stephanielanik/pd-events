@@ -9,7 +9,9 @@
       --gap:16px; --radius:16px; --shadow:0 8px 24px rgba(0,0,0,.08);
       --brand:#004D86; --brand-hover:#003a66; --brand-active:#002f52;
       --columns:3; --rail-max:1200px;
-      --surface:#fff; --page:#fafbfc; --muted:#445;
+      --surface:#fff; --page:#fafbfc; --muted:#445; --card-border: 1px solid rgba(20,40,60,.10);   /* faint hairline */
+  --card-shadow: 0 8px 26px rgba(0,0,0,.14);     /* stronger shadow */
+  --card-bg: #fff;                    
     }
     html, body { background: transparent !important; }
 body {
@@ -22,13 +24,7 @@ body {
 
     .section{max-width:var(--rail-max);margin:0 auto;padding:24px}
     h1{margin:0 0 12px;font-size:clamp(1.25rem,1.2rem + 1vw,1.75rem);text-align:left}
-/* --- make cards pop a bit more in Canvas --- */
-:root{
-  /* tweak these three to taste */
-  --card-border: 1px solid rgba(20,40,60,.10);   /* faint hairline */
-  --card-shadow: 0 8px 26px rgba(0,0,0,.14);     /* stronger shadow */
-  --card-bg: #fff;                               /* keep white; see alt below */
-}
+
 
 /* Filmstrip cards */
 .card{
