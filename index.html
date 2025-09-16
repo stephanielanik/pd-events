@@ -57,6 +57,12 @@
 
     /* Agenda view */
     .agenda{display:grid;gap:16px}
+    /* Agenda description line spacing */
+    .agenda .desc{line-height: 1.35;   /* was ~1.5; lower = tighter */
+}
+
+/* If Google inserted <p> tags, kill their big margins */
+    .agenda .desc p{margin: 2px 0;}
     .row{display:grid;grid-template-columns:100px 1fr;gap:16px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
     .thumb{width:100px;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#eef2f7}
     .thumb img{width:100%;height:100%;object-fit:cover;display:block}
@@ -71,7 +77,7 @@
 </head>
 <body>
   <div class="section">
-    <h1>Upcoming AIT Professional Development</h1>
+    <h1>Upcoming AIT Professional Development V2</h1>
 
     <div class="toolbar">
       <div class="view-toggle" role="tablist" aria-label="Choose layout">
@@ -127,13 +133,15 @@
       if(tm&&tm[1]){ try{ new URL(tm[1]); return tm[1]; }catch{} }
       return '';
     }
-    function sanitizeDesc(descText){
-      if(!descText) return '';
-      return descText
-        .replace(/\s*(BANNER|REGISTER)\s*:\s*https?:\/\/\S+/gi,'')
-        .replace(/\n{3,}/g,'\n\n')
-        .trim();
-    }
+    function sanitizeDesc(descText) {
+  if (!descText) return '';
+  return descText
+    .replace(/\s*(BANNER|REGISTER)\s*:\s*https?:\/\/\S+/gi, '') // strip tag lines
+    .replace(/\r\n/g, '\n')     // normalize line endings
+    .replace(/\n{2,}/g, '\n')   // <-- collapse blank lines
+    .replace(/[ \t]+\n/g, '\n') // trim trailing spaces on lines
+    .trim();
+}
     function fmtRange(start,end,allDay){
       const optsD={weekday:'short',month:'short',day:'numeric'};
       const optsT={hour:'numeric',minute:'2-digit'};
