@@ -95,7 +95,7 @@
 </head>
 <body>
   <div class="section">
-    <h1>Upcoming AIT Professional Development</h1>
+    <h1>Upcoming AIT Professional Development V1</h1>
 
     <div class="toolbar">
       <div class="view-toggle" role="tablist" aria-label="Choose layout">
@@ -147,6 +147,8 @@
       return s.replace(/\u00A0/g,' ').replace(/\n{3,}/g,'\n\n').trim();
     }
     function getTaggedUrl(descHtml, descText, tags) {
+      const getTaggedUrlFromEither = (html, text, tags='REGISTER') =>
+  getTaggedUrl(html, text, Array.isArray(tags) ? tags : [tags]);
   const html = (descHtml || '').replace(/\u00A0/g, ' ');
   const text = (descText || '');
 
@@ -301,7 +303,7 @@ if (descClean.length > 180) {                     // rough threshold; tweak as n
         const descHtml = ev.description || '';
         const descText = htmlToText(descHtml);
         const banner   = getTaggedUrlFromEither(descHtml,descText,'BANNER') || FALLBACK_IMAGE;
-        const signup   = getTaggedUrlFromEither(descHtml,descText,'REGISTER');
+        const signup   = getTaggedUrlFromEither(descHtml,descText, SIGNUP_TAGS);
         const descClean= sanitizeDesc(descText);
 
         const row=document.createElement('article'); row.className='row';
