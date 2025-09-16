@@ -44,10 +44,15 @@
     gap:var(--gap);
     overflow-x:auto;
     scroll-snap-type:x mandatory;
-    padding-left: calc(var(--gap) * .5);
+    padding-left: var(--gap);
     padding-bottom:12px;
+    scroll-padding-left: var(--gap);
+    padding-right: calc(var(--gap) * .5);
+    scroll-padding-right: calc(var(--gap) * .5);
   }
-  .strip > article{ scroll-snap-align:start; }
+  .strip > article:first-child{
+  scroll-margin-left: var(--gap);
+}
 
   /* cards */
   .card{ background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); }
@@ -101,7 +106,7 @@
   <!-- heading + tabs aligned to card rail -->
   <div class="widget-shell">
     <div class="rail-margins">
-      <h1>Upcoming AIT Professional Development V1</h1>
+      <h1>Upcoming AIT Professional Development V2</h1>
       <div class="tabs" role="tablist" aria-label="View">
         <button id="tabCards"  class="tab" role="tab" aria-selected="true"  aria-controls="panelCards">Cards</button>
         <button id="tabAgenda" class="tab" role="tab" aria-selected="false" aria-controls="panelAgenda">Agenda</button>
