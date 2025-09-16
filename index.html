@@ -160,7 +160,7 @@ function sanitizeDesc(descText) {
         img.referrerPolicy = 'no-referrer';   // helps with some hosts
         img.src = banner;
         img.onerror = () => { img.src = FALLBACK_IMAGE; }; // use fallback if banner fails
-
+        imgWrap.appendChild(img);
         const c = document.createElement('div');
         c.className = 'content';
 
