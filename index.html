@@ -63,7 +63,7 @@
   .content{ display:grid; gap:8px; padding:14px 16px 16px; }
   .title{ font-weight:800; font-size:1.6rem; line-height:1.15; }
   .meta{ color:var(--muted); font-weight:700; }
-  .desc{ color:#333; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:5;
+  .card .desc{ color:#333; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:5;
          overflow:hidden; white-space:pre-line; line-height:1.45; }
   .desc.expanded{ -webkit-line-clamp:unset; overflow:visible; max-height:none; }
   .more{ appearance:none; border:0; background:transparent; color:var(--brand);
@@ -96,7 +96,7 @@
   .row h3{ margin:0; font-size:1.35rem; }
   .row .when{ color:var(--muted); font-weight:700; margin:4px 0 2px; }
   .row .where,.row .format{ margin:2px 0; }
-  .row .desc{ margin-top:8px; }
+  .row .desc{margin-top:8px; display:block; white-space:pre-line; overflow:visible; -webkit-line-clamp:unset; -webkit-box-orient:unset;}
   .row .cta{ margin-top:10px; width:max-content; padding:10px 14px; }
 
   .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
