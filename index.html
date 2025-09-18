@@ -188,12 +188,7 @@ function getTaggedUrlFromEither(descHtml, descText, tag){
   if (tm?.[1]) { try { new URL(tm[1]); return tm[1]; } catch {} }
   return '';
 }
-function sanitizeDesc(descText){
-  if (!descText) return '';
-  return descText.replace(/\s*(BANNER|REGISTER|SIGNUP)\s*:\s*https?:\/\/\S+/gi,'')
-                 .replace(/\n{3,}/g,"\n\n")
-                 .trim();
-}
+
 // Find a Zoom link via tag or by scanning description/location
 function findZoomLink(descHtml, descText, location) {
   // 1) Prefer explicit tag: ZOOM: https://...
@@ -215,7 +210,7 @@ function findZoomLink(descHtml, descText, location) {
 function sanitizeDesc(descText) {
   if (!descText) return '';
   return descText
-    .replace(/\s*(BANNER|REGISTER|ZOOM)\s*:\s*https?:\/\/\S+/gi, '')
+    .replace(/\s*(BANNER|REGISTER|SIGNUP|ZOOM)\s*:\s*https?:\/\/\S+/gi, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
@@ -413,7 +408,12 @@ function initTabs(){
     const events = await fetchEvents();
     if (!events.length){ document.getElementById('empty').hidden = false; return; }
     renderCards(events);
-    renderAgenda(events);
+    try {
+      renderAgenda(events);
+    } catch (e) {
+      console.error('Agenda render failed:', e);
+      // leave cards visible and keep the empty banner hidden
+    }
   }catch(err){
     const e = document.getElementById('empty');
     e.hidden = false; e.textContent = 'Could not load events. (' + err.message + ')';
