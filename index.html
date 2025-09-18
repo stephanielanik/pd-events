@@ -305,7 +305,7 @@ function renderCards(events){
     const signup   = getTaggedUrlFromEither(descHtml, descText, 'SIGNUP') ||
                      getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
     const zoom     = findZoomLink(descHtml, descText, ev.location);
-    const descClean= sanitizeDesc(descText);
+    const descClean = sanitizeDesc(descText, { stripWhere: true, stripFormat: true });;
 
     const card = document.createElement('article'); card.className='card'; card.setAttribute('role','listitem');
 
@@ -358,7 +358,7 @@ function renderAgenda(events){
     const signup   = getTaggedUrlFromEither(descHtml, descText, 'SIGNUP') ||
                      getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
     const zoom     = findZoomLink(descHtml, descText, ev.location);
-    const descClean= sanitizeDesc(descText);
+    const descClean = sanitizeDesc(descText, { stripWhere: true, stripFormat: true });;
 
     const row = document.createElement('article'); row.className='row';
 
