@@ -194,6 +194,31 @@ function sanitizeDesc(descText){
                  .replace(/\n{3,}/g,"\n\n")
                  .trim();
 }
+// Find a Zoom link via tag or by scanning description/location
+function findZoomLink(descHtml, descText, location) {
+  // 1) Prefer explicit tag: ZOOM: https://...
+  const tagged = getTaggedUrlFromEither(descHtml, descText, 'ZOOM');
+  if (tagged) return tagged;
+
+  // 2) Otherwise scan for any zoom.us link in html/text/location
+  const rx = /https?:\/\/[^\s"'<>]*zoom\.us[^\s"'<>]*/i; // covers /j/..., /my/..., ?pwd=...
+  const candidates = [descHtml || '', descText || '', location || ''];
+  for (const raw of candidates) {
+    const s = String(raw).replace(/\u00A0/g, ' ');
+    const m = s.match(rx);
+    if (m && m[0]) return m[0];
+  }
+  return '';
+}
+
+// Add ZOOM to the tags we remove from visible description
+function sanitizeDesc(descText) {
+  if (!descText) return '';
+  return descText
+    .replace(/\s*(BANNER|REGISTER|ZOOM)\s*:\s*https?:\/\/\S+/gi, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
 function getTimes(ev){
   const s = ev.start?.dateTime || (ev.start?.date ? ev.start.date + 'T00:00:00' : null);
   const e = ev.end?.dateTime   || (ev.end?.date   ? ev.end.date   + 'T00:00:00' : s);
