@@ -221,26 +221,16 @@ function findZoomLink(descHtml, descText, location) {
 }
 
 // Add ZOOM to the tags we remove from visible description
-function sanitizeDesc(descText, opts = {}) {
+function sanitizeDesc(descText) {
   if (!descText) return '';
   let t = String(descText).replace(/\r/g, '');
 
-  // Strip our machine tags (already handled as buttons/props)
+  // Keep machine tags only:
   t = t.replace(/^\s*(BANNER|REGISTER|SIGNUP|ZOOM)\s*:\s*https?:\/\/\S+.*$/gmi, '');
 
-  // If we’re showing these in dedicated UI rows, strip duplicates from the body
-  if (opts.stripWhere !== false) {
-    t = t.replace(/^\s*Where:\s*.*$/gmi, '');
-  }
-  if (opts.stripFormat !== false) {
-    t = t.replace(/^\s*Format:\s*.*$/gmi, '');
-  }
+  // (Optionally remove Where: if you render Where separately; otherwise comment this out)
+  // t = t.replace(/^\s*Where:\s*.*$/gmi, '');
 
-  // Common noise lines you’ve used before
-  t = t.replace(/^\s*Signup\s*Here.*$/gmi, '');
-  t = t.replace(/^\s*Join on Zoom.*$/gmi, '');
-
-  // collapse extra blank lines
   t = t.replace(/\n{3,}/g, '\n\n').trim();
   return t;
 }
