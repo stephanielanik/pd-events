@@ -348,8 +348,8 @@ function renderAgenda(events){
   const z = document.createElement('a');
   z.href = zoom; z.target = '_blank'; z.rel = 'noopener';
   z.textContent = 'Join on Zoom';
-  z.className = 'cta'; // or a smaller link style if you prefer
-  details.appendChild(z);
+  z.className = 'cta';
+  body.appendChild(z);      // <-- append to the existing 'body' div
 }
 
     row.append(thumb, body);
