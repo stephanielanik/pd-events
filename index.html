@@ -14,29 +14,23 @@
     --radius:18px;
     --shadow:0 8px 24px rgba(0,0,0,.08);
     --shadow-md:0 14px 40px rgba(0,0,0,.12);
-    --gap:20px; --nav:48px;                 /* <-- arrow size used for gutters */
-    --rail-pad: calc(var(--nav) + 8px);      /* <-- keep heading/tabs aligned to cards */
+    --gap:20px; --nav:48px;
+    --rail-pad: calc(var(--nav) + 8px);
   }
 
   body{ margin:0; padding:24px 16px 36px; background:var(--bg); color:var(--text);
         font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
 
-  /* shared width clamp */
   .widget-shell{ max-width:1200px; margin:0 auto; }
-
-  /* this gives the same inner margins as the card rail (inside arrow gutters) */
   .rail-margins{ padding-left:var(--rail-pad); padding-right:var(--rail-pad); }
-
   h1{ font-size:clamp(1.25rem,1.1rem + 1.1vw,2rem); margin:0 0 12px; }
 
-  /* view toggle */
   .tabs{ display:flex; gap:10px; margin:6px 0 18px; }
   .tab{ appearance:none; border:0; border-radius:999px; padding:10px 14px;
         background:var(--soft); color:var(--text); font-weight:700; cursor:pointer; }
   .tab[aria-selected="true"]{ background:var(--brand); color:#fff; }
 
-  /* carousel */
-  .carousel{ position:relative; padding:0 var(--rail-pad); }   /* same gutters as .rail-margins */
+  .carousel{ position:relative; padding:0 var(--rail-pad); }
   .strip{
     display:grid;
     grid-auto-flow:column;
@@ -50,11 +44,8 @@
     padding-right: calc(var(--gap) * .5);
     scroll-padding-right: calc(var(--gap) * .5);
   }
-  .strip > article:first-child{
-    scroll-margin-left: var(--gap);
-  }
+  .strip > article:first-child{ scroll-margin-left: var(--gap); }
 
-  /* cards */
   .card{ background:var(--card); border-radius:var(--radius); box-shadow:0 0 0 1px rgba(0,0,0,.07),var(--shadow); }
   .img-wrap{ position:relative; aspect-ratio:16/9; overflow:hidden;
              border-top-left-radius:var(--radius); border-top-right-radius:var(--radius);
@@ -69,14 +60,12 @@
   .more{ appearance:none; border:0; background:transparent; color:var(--brand);
          font-weight:800; cursor:pointer; margin-top:-4px; width:fit-content; }
 
-  /* CTA */
   .cta{ display:inline-block; text-decoration:none; text-align:center;
         margin-top:10px; padding:12px 14px; border-radius:12px;
         background:var(--brand); color:#fff; font-weight:800; }
   .cta:hover{ background:var(--brand-hover); }
   .cta:active{ background:var(--brand-active); }
 
-  /* arrows */
   .nav{ position:absolute; top:50%; transform:translateY(-50%); width:var(--nav); height:var(--nav);
         border:0; border-radius:999px; display:grid; place-items:center;
         background:var(--brand); color:#fff; box-shadow:0 6px 18px rgba(0,0,0,.18); cursor:pointer; }
@@ -84,7 +73,6 @@
   .nav:hover{ background:var(--brand-hover); } .nav:active{ background:var(--brand-active); }
   .nav[disabled]{ background:#d5dbe3; color:#fff; cursor:not-allowed; opacity:.85; }
 
-  /* agenda */
   .agenda-viewport{ max-height:70vh; overflow:auto; padding:0 var(--gap); box-sizing:border-box; }
   .agenda-wrap{ padding-top:6px; padding-bottom:12px; }
   .row{ display:grid; grid-template-columns:96px 1fr; gap:16px;
@@ -96,15 +84,35 @@
   .row .when{ color:var(--muted); font-weight:700; margin:4px 0 2px; }
   .row .where{ margin:2px 0; }
   .row .desc{ margin-top:8px; display:block; white-space:pre-line; overflow:visible; -webkit-line-clamp:unset; -webkit-box-orient:unset; }
-
   .agenda .cta{ padding:6px 10px; border-radius:8px; font-size:.9rem; }
+
   .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
   [hidden]{ display:none !important; }
+
+  /* --- Add-to-Calendar UI --- */
+  .addcal-btn{
+    position:absolute; top:8px; right:8px; width:32px; height:32px;
+    border-radius:999px; background:rgba(255,255,255,.92);
+    display:grid; place-items:center; border:1px solid rgba(0,0,0,.08);
+    box-shadow:0 8px 20px rgba(0,0,0,.12); cursor:pointer;
+    backdrop-filter:saturate(1.2) blur(6px);
+  }
+  .addcal-btn img{ width:18px; height:18px; display:block; }
+  .addcal-menu{
+    position:absolute; top:44px; right:8px; background:#fff; z-index:10;
+    border:1px solid rgba(0,0,0,.12); border-radius:12px; box-shadow:var(--shadow-md);
+    padding:6px; min-width:200px;
+  }
+  .addcal-menu a{
+    display:block; padding:10px 12px; text-decoration:none; color:#004D86; font-weight:800;
+    border-radius:8px;
+  }
+  .addcal-menu a:hover{ background:#f2f6fb; }
+  .hide{ display:none !important; }
 </style>
 </head>
 <body>
 
-  <!-- heading + tabs aligned to card rail -->
   <div class="widget-shell">
     <div class="rail-margins">
       <h1>Upcoming AIT PD Opportunities</h1>
@@ -115,7 +123,6 @@
     </div>
   </div>
 
-  <!-- CARDS -->
   <section id="panelCards" role="tabpanel" aria-labelledby="tabCards">
     <div class="widget-shell">
       <div class="carousel">
@@ -132,7 +139,6 @@
     </div>
   </section>
 
-  <!-- AGENDA (same left/right margins as card rail, and its own scroll area) -->
   <section id="panelAgenda" role="tabpanel" aria-labelledby="tabAgenda" hidden>
     <div class="widget-shell">
       <div class="rail-margins">
@@ -152,6 +158,7 @@ const API_KEY       = 'AIzaSyBUJxL5LLxzrzutXCSGBcv28XJX02GhSIU';
 const MONTHS_AHEAD  = 3;
 const MAX_RESULTS   = 50;
 const FALLBACK_IMAGE= 'https://stephanielanik.github.io/pd-events/images/aitevent.jpg';
+const ICON_URL      = 'https://stephanielanik.github.io/pd-events/images/calendar-plus-duotone-regular-full.svg';
 
 /* ========= Helpers ========= */
 function getRange(){
@@ -165,7 +172,7 @@ function fmtRange(startISO, endISO, allDay){
   if (allDay){
     const same = s.toDateString() === e.toDateString();
     return same ? s.toLocaleDateString(undefined, optsD)
-                : `${s.toLocaleDateString(undefined, optsD)} → ${e.toLocaleDateString(undefined, optsD)}`;
+                : `${s.toLocaleDateString(undefined, optsD)} • ${e.toLocaleDateString(undefined, optsD)}`;
   }else{
     const same = s.toDateString() === e.toDateString();
     const d1 = s.toLocaleDateString(undefined, optsD);
@@ -187,15 +194,10 @@ function getTaggedUrlFromEither(descHtml, descText, tag){
   if (tm?.[1]) { try { new URL(tm[1]); return tm[1]; } catch {} }
   return '';
 }
-
-// Find a Zoom link via tag or by scanning description/location
 function findZoomLink(descHtml, descText, location) {
-  // 1) Prefer explicit tag: ZOOM: https://...
   const tagged = getTaggedUrlFromEither(descHtml, descText, 'ZOOM');
   if (tagged) return tagged;
-
-  // 2) Otherwise scan for any zoom.us link in html/text/location
-  const rx = /https?:\/\/[^\s"'<>]*zoom\.us[^\s"'<>]*/i; // covers /j/..., /my/..., ?pwd=...
+  const rx = /https?:\/\/[^\s"'<>]*zoom\.us[^\s"'<>]*/i;
   const candidates = [descHtml || '', descText || '', location || ''];
   for (const raw of candidates) {
     const s = String(raw).replace(/\u00A0/g, ' ');
@@ -204,8 +206,6 @@ function findZoomLink(descHtml, descText, location) {
   }
   return '';
 }
-
-// Keep Format: inside the body; only strip machine tags
 function sanitizeDesc(descText) {
   if (!descText) return '';
   return descText
@@ -218,6 +218,65 @@ function getTimes(ev){
   const e = ev.end?.dateTime   || (ev.end?.date   ? ev.end.date   + 'T00:00:00' : s);
   const allDay = !!ev.start?.date && !!ev.end?.date;
   return { start:s, end:e, allDay };
+}
+
+/* === Add-to-calendar helpers === */
+function pad(n){ return String(n).padStart(2,'0'); }
+function toICSDate(iso){
+  const d = new Date(iso);
+  return d.getUTCFullYear() + pad(d.getUTCMonth()+1) + pad(d.getUTCDate()) +
+         'T' + pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + pad(d.getUTCSeconds()) + 'Z';
+}
+function toGoogleDatePart(iso, allDay){
+  const d = new Date(iso);
+  if (allDay){
+    return d.getUTCFullYear() + pad(d.getUTCMonth()+1) + pad(d.getUTCDate());
+  }
+  return toICSDate(iso);
+}
+function makeICSHref({title, desc, location, startISO, endISO, allDay, uid}){
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//AIT PD//EN',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:${uid || (startISO + '@ait')}`,
+    `DTSTAMP:${toICSDate(new Date().toISOString())}`,
+    allDay
+      ? `DTSTART;VALUE=DATE:${toGoogleDatePart(startISO,true)}`
+      : `DTSTART:${toICSDate(startISO)}`,
+    allDay
+      ? `DTEND;VALUE=DATE:${toGoogleDatePart(endISO,true)}`
+      : `DTEND:${toICSDate(endISO)}`,
+    `SUMMARY:${(title||'').replace(/\r?\n/g,' ')}`,
+    location ? `LOCATION:${location.replace(/\r?\n/g,' ')}` : '',
+    `DESCRIPTION:${(desc||'').replace(/\r?\n/g,' ')}`,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].filter(Boolean).join('\r\n');
+  return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(lines);
+}
+function makeGoogleHref({title, desc, location, startISO, endISO, allDay}){
+  const dates = `${toGoogleDatePart(startISO,allDay)}/${toGoogleDatePart(endISO,allDay)}`;
+  const u = new URL('https://calendar.google.com/calendar/render');
+  u.searchParams.set('action','TEMPLATE');
+  u.searchParams.set('text', title || '');
+  u.searchParams.set('dates', dates);
+  if (desc) u.searchParams.set('details', desc);
+  if (location) u.searchParams.set('location', location);
+  u.searchParams.set('sf','true'); u.searchParams.set('output','xml');
+  return u.toString();
+}
+function makeOutlookWebHref({title, desc, location, startISO, endISO}){
+  const u = new URL('https://outlook.live.com/calendar/0/action/compose');
+  u.searchParams.set('rru','addevent');
+  u.searchParams.set('subject', title || '');
+  u.searchParams.set('startdt', startISO);
+  u.searchParams.set('enddt', endISO);
+  if (location) u.searchParams.set('location', location);
+  if (desc) u.searchParams.set('body', desc);
+  return u.toString();
 }
 
 /* ========= Fetch ========= */
@@ -254,7 +313,7 @@ function renderCards(events){
                      getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
     const descClean= sanitizeDesc(descText);
     const zoom     = findZoomLink(descHtml, descText, ev.location);
-    
+
     const card = document.createElement('article');
     card.className = 'card'; card.setAttribute('role','listitem');
 
@@ -263,6 +322,38 @@ function renderCards(events){
     img.src=banner; img.alt=''; img.loading='lazy'; img.referrerPolicy='no-referrer';
     img.onerror=()=>{ img.src=FALLBACK_IMAGE; };
     imgWrap.appendChild(img);
+
+    /* --- Add-to-Calendar button + menu --- */
+    const addBtn = document.createElement('button');
+    addBtn.className = 'addcal-btn'; addBtn.type='button'; addBtn.title='Add to calendar';
+    const icon = document.createElement('img');
+    icon.src = ICON_URL; icon.alt = '';
+    addBtn.appendChild(icon);
+
+    const menu = document.createElement('div');
+    menu.className = 'addcal-menu hide';
+    const payload = {
+      title: ev.summary || 'Untitled event',
+      desc:  descClean,
+      location: ev.location || '',
+      startISO: start, endISO: end, allDay
+    };
+    const aGoogle  = document.createElement('a'); aGoogle.textContent  = 'Google Calendar';
+    aGoogle.href   = makeGoogleHref(payload);  aGoogle.target='_blank'; aGoogle.rel='noopener';
+
+    const aOutlook = document.createElement('a'); aOutlook.textContent = 'Outlook (web)';
+    aOutlook.href  = makeOutlookWebHref(payload); aOutlook.target='_blank'; aOutlook.rel='noopener';
+
+    const aICS     = document.createElement('a'); aICS.textContent     = 'Apple / .ics';
+    aICS.href      = makeICSHref({...payload, uid: ev.iCalUID || ev.id});
+    aICS.download  = (payload.title.replace(/[^\w\- ]+/g,'').trim() || 'event') + '.ics';
+
+    menu.append(aGoogle, aOutlook, aICS);
+
+    function closeMenus(){ menu.classList.add('hide'); }
+    addBtn.addEventListener('click', (e)=>{ e.stopPropagation(); menu.classList.toggle('hide'); });
+    document.addEventListener('click', closeMenus);
+    imgWrap.append(addBtn, menu);
 
     const c = document.createElement('div'); c.className='content';
     const title = document.createElement('div'); title.className='title'; title.textContent = ev.summary || 'Untitled event';
@@ -302,7 +393,7 @@ function renderCards(events){
   initRailNav();
 }
 
-/* ========= Render: Agenda ========= */
+/* ========= Render: Agenda (location inline) ========= */
 function renderAgenda(events){
   const wrap = document.getElementById('agendaWrap');
   wrap.innerHTML = '';
@@ -327,24 +418,16 @@ function renderAgenda(events){
 
     const body=document.createElement('div');
     const h3=document.createElement('h3'); h3.textContent=ev.summary || 'Untitled event';
-
-    // when + location on ONE line
-    const dw=document.createElement('div'); 
-    dw.className='when';
+    const dw=document.createElement('div'); dw.className='when';
     dw.textContent = when + (ev.location ? ` • ${ev.location}` : '');
 
-    // description (keeps Format: inside body text if present)
-    const d=document.createElement('div'); 
-    d.className='desc'; 
-    d.textContent=descClean;
+    const d=document.createElement('div'); d.className='desc'; d.textContent=descClean;
 
     body.append(h3, dw);
     if (d.textContent) body.appendChild(d);
 
     if (signup){
-      const a=document.createElement('a'); 
-      a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; 
-      a.textContent='Sign up';
+      const a=document.createElement('a'); a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
       body.appendChild(a);
     }
     if (zoom) {
@@ -411,12 +494,7 @@ function initTabs(){
     const events = await fetchEvents();
     if (!events.length){ document.getElementById('empty').hidden = false; return; }
     renderCards(events);
-    try {
-      renderAgenda(events);
-    } catch (e) {
-      console.error('Agenda render failed:', e);
-      // leave cards visible and keep the empty banner hidden
-    }
+    try { renderAgenda(events); } catch (e) { console.error('Agenda render failed:', e); }
   }catch(err){
     const e = document.getElementById('empty');
     e.hidden = false; e.textContent = 'Could not load events. (' + err.message + ')';
