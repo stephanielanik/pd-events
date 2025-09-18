@@ -1,596 +1,462 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Upcoming AIT Professional Development</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>AIT Professional Development – Events</title>
+  <style>
+    :root{
+      --brand:#004D86;
+      --gap:16px;
+      --radius:16px;
+      --shadow:0 6px 20px rgba(0,0,0,.08);
+      --border:1px solid rgba(0,0,0,.10);
+      --tile-w:340px; /* target width for each card */
+      --rail-pad:16px; /* left/right pad so first/last card don’t hug edges */
+    }
+    /* Page */
+    html,body{background:transparent;color:#1a1a1a;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0}
+    .wrap{max-width:1200px;margin:0 auto;padding:0 var(--rail-pad) 24px;}
+    h1{margin:16px 0 8px;font-weight:700;font-size:clamp(18px,2.2vw,26px);color:#0c2030}
 
-<style>
-  :root{
-    --brand:#004D86; --brand-hover:#0a5ea2; --brand-active:#084d86;
-    --text:#15202b; --muted:#445;
-    --bg:transparent;
-    --card:#fff; --soft:#f2f4f7;
-    --radius:18px;
-    --shadow:0 8px 24px rgba(0,0,0,.08);
-    --shadow-md:0 14px 40px rgba(0,0,0,.12);
-    --gap:20px; --nav:48px;                 /* <-- arrow size used for gutters */
-    --rail-pad: calc(var(--nav) + 8px);      /* <-- keep heading/tabs aligned to cards */
-  }
+    /* Tabs */
+    .tabs{display:flex;gap:8px;margin:6px 0 16px}
+    .tab{appearance:none;border:1px solid #ccd6e2;background:#f6f9fc;color:#0c2030;border-radius:999px;padding:8px 12px;font-weight:600;cursor:pointer}
+    .tab[aria-selected="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+    .spacer{flex:1}
 
-  body{ margin:0; padding:24px 16px 36px; background:var(--bg); color:var(--text);
-        font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+    /* Filmstrip */
+    .rail-wrap{position:relative}
+    .rail{
+      display:grid;
+      grid-auto-flow:column;
+      grid-auto-columns:var(--tile-w);
+      gap:var(--gap);
+      overflow-x:auto; scroll-snap-type:x mandatory;
+      padding: 0 var(--rail-pad) 8px var(--rail-pad);
+      margin:0 -16px; /* let arrows sit inside without clipping */
+    }
+    .rail::-webkit-scrollbar{height:10px}
+    .rail::-webkit-scrollbar-thumb{background:#d8e1ea;border-radius:999px}
+    .rail > article{scroll-snap-align:start}
 
-  /* shared width clamp */
-  .widget-shell{ max-width:1200px; margin:0 auto; }
+    /* Arrows */
+    .nav{
+      position:absolute; top:40%;
+      translate:0 -50%; z-index:2;
+      width:42px;height:42px;border-radius:50%;
+      background:#fff;border:1px solid #d7dee7;box-shadow:0 6px 18px rgba(0,0,0,.12);
+      display:grid;place-items:center;cursor:pointer;user-select:none;
+      color:var(--brand);
+    }
+    .nav.left{left:0}
+    .nav.right{right:0}
+    .nav[disabled]{opacity:.35;pointer-events:none;filter:grayscale(1)}
+    .nav svg{width:18px;height:18px}
 
-  /* this gives the same inner margins as the card rail (inside arrow gutters) */
-  .rail-margins{ padding-left:var(--rail-pad); padding-right:var(--rail-pad); }
+    /* Card */
+    .card{
+      background:#fff;border:var(--border);border-radius:var(--radius);box-shadow:var(--shadow);
+      display:flex;flex-direction:column;overflow:hidden;
+    }
+    .img-wrap{position:relative;aspect-ratio:16/9;background:#eef2f7}
+    .img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+    .content{padding:14px 16px 16px;display:grid;gap:8px}
+    .title{font-weight:700;font-size:1.05rem;line-height:1.25}
+    .meta{font-size:.92rem;color:#314255}
+    .card .desc{
+      display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;
+      overflow:hidden;white-space:pre-line;line-height:1.5;
+    }
+    .card .desc.expanded{display:block;-webkit-line-clamp:unset;overflow:visible}
 
-  h1{ font-size:clamp(1.25rem,1.1rem + 1.1vw,2rem); margin:0 0 12px; }
+    /* Agenda list */
+    #agenda{display:none}
+    #agenda[aria-hidden="false"]{display:block}
+    .row{
+      display:grid;grid-template-columns:120px 1fr;gap:14px;
+      background:#fff;border:var(--border);border-radius:14px;box-shadow:var(--shadow);
+      padding:12px;margin:12px 0;
+    }
+    .thumb{width:100%;height:100%;max-height:80px;object-fit:cover;border-radius:10px;border:1px solid rgba(0,0,0,.08)}
+    .row .where{font-size:.95rem;color:#314255;margin-top:2px}
+    .row .desc{white-space:pre-line;margin-top:8px}
 
-  /* view toggle */
-  .tabs{ display:flex; gap:10px; margin:6px 0 18px; }
-  .tab{ appearance:none; border:0; border-radius:999px; padding:10px 14px;
-        background:var(--soft); color:var(--text); font-weight:700; cursor:pointer; }
-  .tab[aria-selected="true"]{ background:var(--brand); color:#fff; }
+    /* Buttons */
+    .cta{display:inline-block;margin-top:6px;padding:10px 12px;border-radius:10px;
+      text-decoration:none;background:var(--brand);color:#fff;font-weight:700}
+    .cta.outline{background:transparent;color:var(--brand);border:1px solid #ccd6e2}
+    .more{background:transparent;border:0;color:var(--brand);font-weight:700;cursor:pointer;padding:4px 0}
 
-  /* carousel */
-  .carousel{ position:relative; padding:0 var(--rail-pad); }   /* same gutters as .rail-margins */
-  .strip{
-    display:grid;
-    grid-auto-flow:column;
-    grid-auto-columns:minmax(290px, calc((min(1200px, 100%) - (var(--gap)*2)) / 3));
-    gap:var(--gap);
-    overflow-x:auto;
-    scroll-snap-type:x mandatory;
-    padding-left: var(--gap);
-    padding-bottom:12px;
-    scroll-padding-left: var(--gap);
-    padding-right: calc(var(--gap) * .5);
-    scroll-padding-right: calc(var(--gap) * .5);
-  }
-  .strip > article:first-child{
-  scroll-margin-left: var(--gap);
-}
+    /* Empty/error */
+    .empty{padding:18px;color:#555}
 
-  /* cards */
-  .card{ background:var(--card); border-radius:var(--radius); box-shadow:0 0 0 1px rgba(0,0,0,.07),var(--shadow); }
-  .img-wrap{ position:relative; aspect-ratio:16/9; overflow:hidden;
-             border-top-left-radius:var(--radius); border-top-right-radius:var(--radius);
-             background:#e8eef5; }
-  .img-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .content{ display:grid; gap:8px; padding:14px 16px 16px; }
-  .title{ font-weight:800; font-size:1.6rem; line-height:1.15; }
-  .meta{ color:var(--muted); font-weight:700; }
-  .card .desc{ color:#333; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:5;
-         overflow:hidden; white-space:pre-line; line-height:1.45; }
-  .desc.expanded{ -webkit-line-clamp:unset; overflow:visible; max-height:none; }
-  .more{ appearance:none; border:0; background:transparent; color:var(--brand);
-         font-weight:800; cursor:pointer; margin-top:-4px; width:fit-content; }
-
-  /* CTA */
-  .cta{ display:inline-block; text-decoration:none; text-align:center;
-        margin-top:10px; padding:12px 14px; border-radius:12px;
-        background:var(--brand); color:#fff; font-weight:800; }
-  .cta:hover{ background:var(--brand-hover); }
-  .cta:active{ background:var(--brand-active); }
-
-  /* arrows */
-  .nav{ position:absolute; top:50%; transform:translateY(-50%); width:var(--nav); height:var(--nav);
-        border:0; border-radius:999px; display:grid; place-items:center;
-        background:var(--brand); color:#fff; box-shadow:0 6px 18px rgba(0,0,0,.18); cursor:pointer; }
-  #prevBtn{ left:8px; }  #nextBtn{ right:8px; }
-  .nav:hover{ background:var(--brand-hover); } .nav:active{ background:var(--brand-active); }
-  .nav[disabled]{ background:#d5dbe3; color:#fff; cursor:not-allowed; opacity:.85; }
-
-  /* agenda */
-  .agenda-viewport{ max-height:70vh; overflow:auto;padding: 0 var(--gap);box-sizing: border-box;}   /* <-- self-scrolling panel */
-  .agenda-wrap{ padding-top:6px;padding-bottom: 12px;}                      /* small vertical breathing room */
-  .row{ display:grid; grid-template-columns:96px 1fr; gap:16px;
-        background:var(--card); border-radius:var(--radius); box-shadow:
-    0 0 0 1px rgba(0,0,0,.07),
-    var(--shadow);;
-        padding:14px; margin-bottom:14px; }
-  .thumb{ width:96px; height:96px; border-radius:12px; object-fit:cover; background:#e8eef5; }
-  .row h3{ margin:0; font-size:1.35rem; }
-  .row .when{ color:var(--muted); font-weight:700; margin:4px 0 2px; }
-  .row .where,.row .format{ margin:2px 0; }
-  .row .desc{margin-top:8px; display:block; white-space:pre-line; overflow:visible; -webkit-line-clamp:unset; -webkit-box-orient:unset;}
-  .row .cta{ margin-top:10px; width:max-content; padding:10px 14px; }
-  .agenda .cta { padding: 6px 10px; border-radius: 8px; font-size: .9rem; }
-  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
-  [hidden]{ display:none !important; }
-
-  .addcal { position: relative; display: inline-block; }
-  .addcal > .cta { margin-top: 8px; }
-  .addcal-menu {
-    position: absolute; inset: auto 0 100% auto; /* appear above on Canvas if needed; change to 100% 0 auto auto for below */
-    display: none; min-width: 220px;
-    background: #fff; border: 1px solid rgba(0,0,0,.08); border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 6px;
-    z-index: 10;
-  }
-  .addcal.open .addcal-menu { display: block; }
-  .addcal-menu a { display: block; padding: 8px 10px; border-radius: 8px; text-decoration: none; color: #0b6efd; font-weight: 600; }
-  .addcal-menu a:hover { background: #f3f6fb; }
-  .cta.outline { background: transparent; color: #004D86; border: 1px solid #ccd6e2; }
-</style>
+    /* Add-to-calendar menu */
+    .addcal{position:relative;display:inline-block;margin-top:6px}
+    .addcal-menu{
+      position:absolute;inset:auto 0 100% auto;display:none;min-width:220px;background:#fff;
+      border:1px solid rgba(0,0,0,.08);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:6px;z-index:10
+    }
+    .addcal.open .addcal-menu{display:block}
+    .addcal-menu a{display:block;padding:8px 10px;border-radius:8px;text-decoration:none;color:var(--brand);font-weight:700}
+    .addcal-menu a:hover{background:#f3f6fb}
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <h1>Upcoming Professional Development Opportunities</h1>
 
-  <!-- heading + tabs aligned to card rail -->
-  <div class="widget-shell">
-    <div class="rail-margins">
-      <h1>Upcoming AIT PD Opportunities</h1>
-      <div class="tabs" role="tablist" aria-label="View">
-        <button id="tabCards"  class="tab" role="tab" aria-selected="true"  aria-controls="panelCards">Cards</button>
-        <button id="tabAgenda" class="tab" role="tab" aria-selected="false" aria-controls="panelAgenda">Agenda</button>
-      </div>
+    <div class="tabs">
+      <button id="tabCards" class="tab" aria-selected="true" type="button">Cards</button>
+      <button id="tabAgenda" class="tab" aria-selected="false" type="button">Agenda</button>
+      <div class="spacer"></div>
     </div>
+
+    <!-- CARDS -->
+    <section id="cards" aria-hidden="false">
+      <div class="rail-wrap">
+        <button id="prev" class="nav left" type="button" aria-label="Previous">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        </button>
+        <div id="strip" class="rail" role="list" aria-label="Upcoming events"></div>
+        <button id="next" class="nav right" type="button" aria-label="Next">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m8.59 16.59 1.41 1.41L16 12 10 6 8.59 7.41 13.17 12z"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- AGENDA -->
+    <section id="agenda" aria-hidden="true">
+      <div id="agendaWrap"></div>
+    </section>
+
+    <div id="empty" class="empty" hidden>Could not load events.</div>
   </div>
 
-  <!-- CARDS -->
-  <section id="panelCards" role="tabpanel" aria-labelledby="tabCards">
-    <div class="widget-shell">
-      <div class="carousel">
-        <button id="prevBtn" class="nav" aria-label="Previous">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+  <script>
+    /* ===================== CONFIG ===================== */
+    const CALENDAR_ID   = 'unkaitcalendar@gmail.com'; // e.g. abcd1234@group.calendar.google.com
+    const API_KEY       = 'YOUR_API_KEY_HERE';
+    const MONTHS_AHEAD  = 3;
+    const MAX_RESULTS   = 50;
+    const FALLBACK_IMAGE= 'https://stephanielanik.github.io/pd-events/images/aitevent.jpg';
 
-        <div id="strip" class="strip" role="list"></div>
-
-        <button id="nextBtn" class="nav" aria-label="Next">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- AGENDA (same left/right margins as card rail, and its own scroll area) -->
-  <section id="panelAgenda" role="tabpanel" aria-labelledby="tabAgenda" hidden>
-    <div class="widget-shell">
-      <div class="rail-margins">
-        <div class="agenda-viewport">
-          <div class="agenda-wrap" id="agendaWrap"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div id="empty" hidden>No upcoming events found.</div>
-
-<script>
-/* ========= CONFIG ========= */
-const CALENDAR_ID   = 'unkaitcalendar@gmail.com';
-const API_KEY       = 'AIzaSyBUJxL5LLxzrzutXCSGBcv28XJX02GhSIU';
-const MONTHS_AHEAD  = 3;
-const MAX_RESULTS   = 50;
-const FALLBACK_IMAGE= 'https://stephanielanik.github.io/pd-events/images/aitevent.jpg';
-
-/* ========= Helpers ========= */
-function getRange(){
-  const now = new Date(); const end = new Date(); end.setMonth(end.getMonth() + MONTHS_AHEAD);
-  return { timeMin: now.toISOString(), timeMax: end.toISOString() };
-}
-function fmtRange(startISO, endISO, allDay){
-  const optsD = { weekday:'short', month:'short', day:'numeric' };
-  const optsT = { hour:'numeric', minute:'2-digit' };
-  const s = new Date(startISO), e = new Date(endISO || startISO);
-  if (allDay){
-    const same = s.toDateString() === e.toDateString();
-    return same ? s.toLocaleDateString(undefined, optsD)
-                : `${s.toLocaleDateString(undefined, optsD)} → ${e.toLocaleDateString(undefined, optsD)}`;
-  }else{
-    const same = s.toDateString() === e.toDateString();
-    const d1 = s.toLocaleDateString(undefined, optsD);
-    const t1 = s.toLocaleTimeString(undefined, optsT);
-    const t2 = e.toLocaleTimeString(undefined, optsT);
-    return same ? `${d1} • ${t1}–${t2}` : `${d1} ${t1} → ${e.toLocaleDateString(undefined, optsD)} ${t2}`;
-  }
-}
-function htmlToText(html){
-  const d = document.createElement('div'); d.innerHTML = html || '';
-  d.querySelectorAll('style,script').forEach(el => el.remove());
-  const text = d.textContent || '';
-  return text.replace(/\u00A0/g,' ').replace(/\s+\n/g,"\n").trim();
-}
-function getTaggedUrlFromEither(descHtml, descText, tag){
-  const hm = (descHtml||'').replace(/\u00A0/g,' ').match(new RegExp(tag+'\\s*:\\s*<a[^>]+href="([^"]+)"','i'));
-  if (hm?.[1]) { try { new URL(hm[1]); return hm[1]; } catch {} }
-  const tm = (descText||'').match(new RegExp(tag+'\\s*:\\s*(https?:\\/\\/\\S+)','i'));
-  if (tm?.[1]) { try { new URL(tm[1]); return tm[1]; } catch {} }
-  return '';
-}
-
-// Find a Zoom link via tag or by scanning description/location
-function findZoomLink(descHtml, descText, location) {
-  // 1) Prefer explicit tag: ZOOM: https://...
-  const tagged = getTaggedUrlFromEither(descHtml, descText, 'ZOOM');
-  if (tagged) return tagged;
-
-  // 2) Otherwise scan for any zoom.us link in html/text/location
-  const rx = /https?:\/\/[^\s"'<>]*zoom\.us[^\s"'<>]*/i; // covers /j/..., /my/..., ?pwd=...
-  const candidates = [descHtml || '', descText || '', location || ''];
-  for (const raw of candidates) {
-    const s = String(raw).replace(/\u00A0/g, ' ');
-    const m = s.match(rx);
-    if (m && m[0]) return m[0];
-  }
-  return '';
-}
-
-// Add ZOOM to the tags we remove from visible description
-function sanitizeDesc(descText) {
-  if (!descText) return '';
-  let t = String(descText).replace(/\r/g, '');
-
-  // Keep machine tags only:
-  t = t.replace(/^\s*(BANNER|REGISTER|SIGNUP|ZOOM)\s*:\s*https?:\/\/\S+.*$/gmi, '');
-
-  // (Optionally remove Where: if you render Where separately; otherwise comment this out)
-  // t = t.replace(/^\s*Where:\s*.*$/gmi, '');
-
-  t = t.replace(/\n{3,}/g, '\n\n').trim();
-  return t;
-}
-function getTimes(ev){
-  const s = ev.start?.dateTime || (ev.start?.date ? ev.start.date + 'T00:00:00' : null);
-  const e = ev.end?.dateTime   || (ev.end?.date   ? ev.end.date   + 'T00:00:00' : s);
-  const allDay = !!ev.start?.date && !!ev.end?.date;
-  return { start:s, end:e, allDay };
-}
-function mountExpander(descEl){
-  // Only for cards — skip if this is in agenda
-  if (descEl.closest('#agendaWrap')) return;
-
-  requestAnimationFrame(() => {
-    if (!descEl) return;
-    const needs = descEl.scrollHeight > descEl.clientHeight + 2;
-    if (!needs) return;
-
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'more';       // uses your existing .more style
-    btn.textContent = 'Show more';
-    btn.addEventListener('click', () => {
-      const on = descEl.classList.toggle('expanded');
-      btn.textContent = on ? 'Show less' : 'Show more';
-    });
-    descEl.after(btn);
-  });
-}
-/* ========= Fetch ========= */
-async function fetchEvents(){
-  const { timeMin, timeMax } = getRange();
-  const base = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events`;
-  const url  = new URL(base);
-  url.searchParams.set('key', API_KEY);
-  url.searchParams.set('singleEvents','true');
-  url.searchParams.set('orderBy','startTime');
-  url.searchParams.set('maxResults', String(MAX_RESULTS));
-  url.searchParams.set('timeMin', timeMin);
-  url.searchParams.set('timeMax', timeMax);
-
-  const r = await fetch(url.toString());
-  if (!r.ok) throw new Error('Google API error ' + r.status);
-  const data = await r.json();
-  return (data.items || []).filter(ev => ev.status !== 'cancelled');
-}
-
-function renderCards(events){
-  const strip = document.getElementById('strip');
-  const empty = document.getElementById('empty');
-  strip.innerHTML = '';
-  if (!events.length){ empty.hidden = false; return; }
-  empty.hidden = true;
-
-  for (const ev of events){
-    const { start, end, allDay } = getTimes(ev);
-    const whenTxt = fmtRange(start, end, allDay);
-
-    const descHtml = ev.description || '';
-    const descText = htmlToText(descHtml);
-    const banner   = getTaggedUrlFromEither(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
-    const signup   = getTaggedUrlFromEither(descHtml, descText, 'SIGNUP') ||
-                     getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
-    const zoom     = findZoomLink(descHtml, descText, ev.location);
-    const descClean = sanitizeDesc(descText, { stripWhere: true, stripFormat: true });;
-
-    const card = document.createElement('article'); card.className='card'; card.setAttribute('role','listitem');
-
-    const imgWrap=document.createElement('div'); imgWrap.className='img-wrap';
-    const img=document.createElement('img'); img.loading='lazy'; img.alt=''; img.referrerPolicy='no-referrer';
-    img.src=banner; img.onerror=()=>{ img.src=FALLBACK_IMAGE; };
-    imgWrap.appendChild(img);
-
-    const c=document.createElement('div'); c.className='content';
-    const title=document.createElement('div'); title.className='title'; title.textContent = ev.summary || 'Untitled event';
-    const meta=document.createElement('div'); meta.className='meta';
-    const where = ev.location ? ` • ${ev.location}` : '';
-    meta.textContent = `${whenTxt}${where}`;
-    const desc=document.createElement('div'); desc.className='desc'; desc.textContent = descClean;
-
-    c.append(title, meta, desc);
-mountExpander(desc);
-    if (signup){
-      const a=document.createElement('a');
-      a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
-      c.appendChild(a);
-    }
-    if (zoom){
-      const z=document.createElement('a');
-      z.className='cta'; z.href=zoom; z.target='_blank'; z.rel='noopener'; z.textContent='Join on Zoom';
-      c.appendChild(z);
+    /* ===================== HELPERS ==================== */
+    function htmlToText(html){
+      const d=document.createElement('div'); d.innerHTML = html || '';
+      d.querySelectorAll('style,script').forEach(el=>el.remove());
+      const text = d.textContent || '';
+      return text.replace(/\u00A0/g,' ').replace(/\s+\n/g,'\n').trim();
     }
 
-    // Add-to-calendar
-    mountAddCalMenu(c, ev);
+    function getTaggedUrlFromEither(descHtml, descText, tag){
+      const htmlRe = new RegExp(tag + '\\s*:\\s*<a[^>]+href="([^"]+)"', 'i');
+      const hm = (descHtml||'').replace(/\u00A0/g,' ').match(htmlRe);
+      if (hm && hm[1]) { try{ new URL(hm[1]); return hm[1]; }catch{} }
 
-    card.append(imgWrap, c);
-    strip.appendChild(card);
-  }
+      const textRe = new RegExp(tag + '\\s*:\\s*(https?:\\/\\/\\S+)', 'i');
+      const tm = (descText||'').match(textRe);
+      if (tm && tm[1]) { try{ new URL(tm[1]); return tm[1]; }catch{} }
 
-  initRailNav();
-}
-
-function renderAgenda(events){
-  const wrap = document.getElementById('agendaWrap');
-  wrap.innerHTML = '';
-
-  for (const ev of events){
-    const { start, end, allDay } = getTimes(ev);
-    const when = fmtRange(start, end, allDay);
-
-    const descHtml = ev.description || '';
-    const descText = htmlToText(descHtml);
-    const banner   = getTaggedUrlFromEither(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
-    const signup   = getTaggedUrlFromEither(descHtml, descText, 'SIGNUP') ||
-                     getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
-    const zoom     = findZoomLink(descHtml, descText, ev.location);
-    const descClean = sanitizeDesc(descText, { stripWhere: true, stripFormat: true });;
-
-    const row = document.createElement('article'); row.className='row';
-
-    const thumb=document.createElement('img'); thumb.className='thumb';
-    thumb.src=banner; thumb.alt=''; thumb.loading='lazy'; thumb.referrerPolicy='no-referrer';
-    thumb.onerror=()=>{ thumb.src=FALLBACK_IMAGE; };
-
-    const body=document.createElement('div');
-    const h3=document.createElement('h3'); h3.textContent=ev.summary || 'Untitled event';
-    const dw=document.createElement('div'); dw.className='when';   dw.textContent=when;
-    const wl=document.createElement('div'); wl.className='where';  if (ev.location) wl.textContent = `Where: ${ev.location}`;
-    const fm=document.createElement('div'); fm.className='format';
-    const fmtMatch = descText.match(/Format:\s*(.+)/i);
-    fm.textContent = 'Format: ' + (fmtMatch?.[1] || 'In Person and/or Zoom');
-
-    const d=document.createElement('div'); d.className='desc'; d.textContent=descClean;
-
-    body.append(h3, dw);
-    if (wl.textContent) body.append(wl);
-    if (fm.textContent) body.append(fm);
-    if (d.textContent)  body.append(d);
-
-    if (signup){
-      const a=document.createElement('a');
-      a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
-      body.appendChild(a);
-    }
-    if (zoom){
-      const z=document.createElement('a');
-      z.className='cta'; z.href=zoom; z.target='_blank'; z.rel='noopener'; z.textContent='Join on Zoom';
-      body.appendChild(z);
+      return '';
     }
 
-    // Add-to-calendar
-    mountAddCalMenu(body, ev);
-
-    row.append(thumb, body);
-    wrap.appendChild(row);
-  }
-}
-
-/* ========= Carousel arrows ========= */
-function initRailNav(){
-  const strip   = document.getElementById('strip');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  if (!strip || !prevBtn || !nextBtn) return;
-
-  const eps = 1;
-  const maxScrollLeft = el => el.scrollWidth - el.clientWidth;
-
-  function updateArrows(){
-    const max = maxScrollLeft(strip);
-    const sl  = strip.scrollLeft;
-    const noOverflow = max <= eps;
-    prevBtn.disabled = noOverflow || sl <= eps;
-    nextBtn.disabled = noOverflow || (max - sl) <= eps;
-  }
-
-  prevBtn.onclick = () => strip.scrollBy({ left: -strip.clientWidth, behavior:'smooth' });
-  nextBtn.onclick = () => strip.scrollBy({ left:  strip.clientWidth, behavior:'smooth' });
-  strip.addEventListener('scroll', updateArrows, { passive:true });
-  window.addEventListener('resize', () => requestAnimationFrame(updateArrows));
-  requestAnimationFrame(updateArrows);
-}
-
-/* ========= Tabs ========= */
-function initTabs(){
-  const tabCards  = document.getElementById('tabCards');
-  const tabAgenda = document.getElementById('tabAgenda');
-  const panelCards  = document.getElementById('panelCards');
-  const panelAgenda = document.getElementById('panelAgenda');
-
-  function select(which){
-    const showCards = which === 'cards';
-    tabCards.setAttribute('aria-selected', String(showCards));
-    tabAgenda.setAttribute('aria-selected', String(!showCards));
-    panelCards.hidden  = !showCards;
-    panelAgenda.hidden = showCards;
-    if (showCards) requestAnimationFrame(initRailNav);
-  }
-  tabCards.addEventListener('click',  ()=>select('cards'));
-  tabAgenda.addEventListener('click', ()=>select('agenda'));
-}
-// --- time helpers ---
-function pad(n){ return String(n).padStart(2,'0'); }
-function toUTCstamp(d){ // 20250131T235959Z
-  const z = new Date(d);
-  return z.getUTCFullYear() +
-    pad(z.getUTCMonth()+1) + pad(z.getUTCDate()) + 'T' +
-    pad(z.getUTCHours()) + pad(z.getUTCMinutes()) + pad(z.getUTCSeconds()) + 'Z';
-}
-function toDATE(d){ // 20250131
-  const x = new Date(d);
-  return x.getFullYear() + pad(x.getMonth()+1) + pad(x.getDate());
-}
-
-// --- URL enc ---
-const enc = encodeURIComponent;
-
-// --- Build deep links ---
-function linkGoogle(ev){
-  const { start, end, allDay } = getTimes(ev);
-  const text = ev.summary || 'Untitled event';
-  const details = (ev.description ? htmlToText(ev.description) : '').slice(0, 2000);
-  const loc = ev.location || '';
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Chicago';
-
-  let dates;
-  if(allDay){
-    // Google all-day uses YYYYMMDD/YYYYMMDD (end is exclusive → already correct from API)
-    const s = toDATE(start);
-    const e = toDATE(end);
-    dates = `${s}/${e}`;
-  }else{
-    const s = toUTCstamp(start);
-    const e = toUTCstamp(end);
-    dates = `${s}/${e}`;
-  }
-
-  const base = 'https://www.google.com/calendar/render?action=TEMPLATE';
-  return `${base}&text=${enc(text)}&dates=${enc(dates)}&details=${enc(details)}&location=${enc(loc)}&ctz=${enc(tz)}`;
-}
-
-function linkOutlook(ev){
-  const { start, end, allDay } = getTimes(ev);
-  const text = ev.summary || 'Untitled event';
-  const details = (ev.description ? htmlToText(ev.description) : '');
-  const loc = ev.location || '';
-  // Use ISO; Outlook accepts timezone suffix
-  const s = new Date(start).toISOString();
-  const e = new Date(end).toISOString();
-  const base = 'https://outlook.office.com/calendar/0/deeplink/compose';
-  return `${base}?path=/calendar/action/compose&rru=addevent&subject=${enc(text)}&body=${enc(details)}&location=${enc(loc)}&startdt=${enc(s)}&enddt=${enc(e)}&allday=${allDay ? 'true' : 'false'}`;
-}
-
-function linkYahoo(ev){
-  const { start, end, allDay } = getTimes(ev);
-  const text = ev.summary || 'Untitled event';
-  const details = (ev.description ? htmlToText(ev.description) : '');
-  const loc = ev.location || '';
-  const base = 'https://calendar.yahoo.com/?v=60&view=d&type=20';
-  if(allDay){
-    const s = toDATE(start), e = toDATE(end);
-    return `${base}&title=${enc(text)}&st=${enc(s)}&et=${enc(e)}&desc=${enc(details)}&in_loc=${enc(loc)}`;
-  }else{
-    const s = toUTCstamp(start), e = toUTCstamp(end);
-    return `${base}&title=${enc(text)}&st=${enc(s)}&et=${enc(e)}&desc=${enc(details)}&in_loc=${enc(loc)}`;
-  }
-}
-
-// --- ICS generation ---
-function foldICS(s){
-  // Simple fold to avoid super long lines (75 bytes is spec; this is pragmatic)
-  return String(s||'').replace(/\r?\n/g, '\\n').replace(/[,;]/g, m => (m === ',' ? '\\,' : '\\;'));
-}
-function fileSafe(name){
-  return (name||'event').toLowerCase().replace(/[^a-z0-9-_]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60) || 'event';
-}
-function buildICS(ev){
-  const { start, end, allDay } = getTimes(ev);
-  const uid = ev.iCalUID || ev.id || (Date.now()+'@pd-events');
-  const dtstamp = toUTCstamp(new Date());
-  const summary = foldICS(ev.summary || 'Untitled event');
-  const desc = foldICS(htmlToText(ev.description || ''));
-  const loc = foldICS(ev.location || '');
-  let dtStart, dtEnd, s1, s2;
-  if(allDay){
-    dtStart = toDATE(start);
-    dtEnd = toDATE(end);
-    s1 = `DTSTART;VALUE=DATE:${dtStart}`;
-    s2 = `DTEND;VALUE=DATE:${dtEnd}`;
-  }else{
-    dtStart = toUTCstamp(start);
-    dtEnd = toUTCstamp(end);
-    s1 = `DTSTART:${dtStart}`;
-    s2 = `DTEND:${dtEnd}`;
-  }
-  const lines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//AIT PD//pd-events//EN',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
-    'BEGIN:VEVENT',
-    `UID:${uid}`,
-    `DTSTAMP:${dtstamp}`,
-    s1,
-    s2,
-    `SUMMARY:${summary}`,
-    `DESCRIPTION:${desc}`,
-    `LOCATION:${loc}`,
-    'END:VEVENT',
-    'END:VCALENDAR'
-  ].join('\r\n');
-  return new Blob([lines], { type: 'text/calendar' });
-}
-
-// UI helper to attach the menu to a container element
-function mountAddCalMenu(container, ev){
-  // Build links
-  const g = linkGoogle(ev);
-  const o = linkOutlook(ev);
-  const y = linkYahoo(ev);
-  const icsBlob = buildICS(ev);
-  const icsUrl = URL.createObjectURL(icsBlob);
-  // Root
-  const wrap = document.createElement('div'); wrap.className = 'addcal';
-  const btn = document.createElement('button'); btn.type='button'; btn.className='cta outline'; btn.textContent='Add to calendar';
-  const menu = document.createElement('div'); menu.className='addcal-menu';
-  const aG = document.createElement('a'); aG.href=g; aG.target='_blank'; aG.rel='noopener'; aG.textContent='Google Calendar';
-  const aO = document.createElement('a'); aO.href=o; aO.target='_blank'; aO.rel='noopener'; aO.textContent='Outlook (web)';
-  const aY = document.createElement('a'); aY.href=y; aY.target='_blank'; aY.rel='noopener'; aY.textContent='Yahoo Calendar';
-  const aI = document.createElement('a'); aI.href=icsUrl; aI.download = fileSafe(ev.summary)+'.ics'; aI.textContent='Download .ics';
-  menu.append(aG, aO, aY, aI);
-  btn.addEventListener('click', (e)=>{
-    e.stopPropagation();
-    wrap.classList.toggle('open');
-  });
-  document.addEventListener('click', ()=> wrap.classList.remove('open'));
-  wrap.append(btn, menu);
-  container.appendChild(wrap);
-}
-/* ========= Boot ========= */
-(async function boot(){
-  try{
-    initTabs();
-    const events = await fetchEvents();
-    if (!events.length){ document.getElementById('empty').hidden = false; return; }
-    renderCards(events);
-    try {
-      renderAgenda(events);
-    } catch (e) {
-      console.error('Agenda render failed:', e);
-      // leave cards visible and keep the empty banner hidden
+    function findZoomLink(descHtml, descText, location){
+      const tagged = getTaggedUrlFromEither(descHtml, descText, 'ZOOM');
+      if (tagged) return tagged;
+      const rx=/https?:\/\/[^\s"'<>]*zoom\.us[^\s"'<>]*/i;
+      const candidates=[descHtml||'', descText||'', location||''];
+      for (const raw of candidates){
+        const s=String(raw).replace(/\u00A0/g,' ');
+        const m=s.match(rx); if (m && m[0]) return m[0];
+      }
+      return '';
     }
-  }catch(err){
-    const e = document.getElementById('empty');
-    e.hidden = false; e.textContent = 'Could not load events. (' + err.message + ')';
-    console.error(err);
-  }
-})();
-</script>
+
+    // We DO NOT strip "Format:" ever; we do strip machine tags and (optionally) Where-line if you prefer location field.
+    function sanitizeDesc(descText){
+      if (!descText) return '';
+      let t = String(descText).replace(/\r/g,'');
+      t = t.replace(/^\s*(BANNER|REGISTER|SIGNUP|ZOOM)\s*:\s*https?:\/\/\S+.*$/gmi,''); // remove machine tags
+      // If you always use ev.location, also strip Where: lines from body to avoid duplicate (uncomment next line if desired)
+      // t = t.replace(/^\s*Where:\s*.*$/gmi,'');
+      return t.replace(/\n{3,}/g,'\n\n').trim();
+    }
+
+    function fmtRange(start, end, allDay){
+      const optsD={weekday:'short', month:'short', day:'numeric'};
+      const optsT={hour:'numeric', minute:'2-digit'};
+      const s=new Date(start), e=new Date(end||start);
+      if (allDay){
+        const same=s.toDateString()===e.toDateString();
+        return same? s.toLocaleDateString(undefined,optsD)
+                   : `${s.toLocaleDateString(undefined,optsD)} → ${e.toLocaleDateString(undefined,optsD)}`;
+      }else{
+        const same=s.toDateString()===e.toDateString();
+        const d1=s.toLocaleDateString(undefined,optsD);
+        const t1=s.toLocaleTimeString(undefined,optsT);
+        const t2=e.toLocaleTimeString(undefined,optsT);
+        return same? `${d1} • ${t1}–${t2}` : `${d1} ${t1} → ${e.toLocaleDateString(undefined,optsD)} ${t2}`;
+      }
+    }
+
+    function getTimes(ev){
+      const s = ev.start?.dateTime || (ev.start?.date ? ev.start.date + 'T00:00:00' : null);
+      const e = ev.end?.dateTime   || (ev.end?.date   ? ev.end.date   + 'T00:00:00' : s);
+      const allDay = !!ev.start?.date && !!ev.end?.date;
+      return { start:s, end:e, allDay };
+    }
+
+    // Add-to-calendar helpers
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function toUTCstamp(d){ const z=new Date(d);
+      return z.getUTCFullYear()+pad(z.getUTCMonth()+1)+pad(z.getUTCDate())+'T'+
+             pad(z.getUTCHours())+pad(z.getUTCMinutes())+pad(z.getUTCSeconds())+'Z'; }
+    function toDATE(d){ const x=new Date(d); return x.getFullYear()+pad(x.getMonth()+1)+pad(x.getDate()); }
+    const enc = encodeURIComponent;
+
+    function linkGoogle(ev){
+      const {start,end,allDay}=getTimes(ev);
+      const text=ev.summary||'Untitled event';
+      const details=(ev.description?htmlToText(ev.description):'').slice(0,2000);
+      const loc=ev.location||'';
+      const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'America/Chicago';
+      let dates;
+      if(allDay){ dates=`${toDATE(start)}/${toDATE(end)}`; }
+      else{ dates=`${toUTCstamp(start)}/${toUTCstamp(end)}`; }
+      return `https://www.google.com/calendar/render?action=TEMPLATE&text=${enc(text)}&dates=${enc(dates)}&details=${enc(details)}&location=${enc(loc)}&ctz=${enc(tz)}`;
+    }
+    function linkOutlook(ev){
+      const {start,end,allDay}=getTimes(ev);
+      const text=ev.summary||'Untitled event';
+      const details=(ev.description?htmlToText(ev.description):'');
+      const loc=ev.location||'';
+      const s=new Date(start).toISOString();
+      const e=new Date(end).toISOString();
+      return `https://outlook.office.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&subject=${enc(text)}&body=${enc(details)}&location=${enc(loc)}&startdt=${enc(s)}&enddt=${enc(e)}&allday=${allDay?'true':'false'}`;
+    }
+    function linkYahoo(ev){
+      const {start,end,allDay}=getTimes(ev);
+      const text=ev.summary||'Untitled event';
+      const details=(ev.description?htmlToText(ev.description):'');
+      const loc=ev.location||'';
+      return `https://calendar.yahoo.com/?v=60&view=d&type=20&title=${enc(text)}&st=${enc(allDay?toDATE(start):toUTCstamp(start))}&et=${enc(allDay?toDATE(end):toUTCstamp(end))}&desc=${enc(details)}&in_loc=${enc(loc)}`;
+    }
+    function foldICS(s){ return String(s||'').replace(/\r?\n/g,'\\n').replace(/[,;]/g,m=>m===','?'\\,':'\\;'); }
+    function fileSafe(name){ return (name||'event').toLowerCase().replace(/[^a-z0-9-_]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60)||'event'; }
+    function buildICS(ev){
+      const {start,end,allDay}=getTimes(ev);
+      const uid=ev.iCalUID||ev.id||(Date.now()+'@pd-events');
+      const dtstamp=toUTCstamp(new Date());
+      const summary=foldICS(ev.summary||'Untitled event');
+      const desc=foldICS(htmlToText(ev.description||'')); const loc=foldICS(ev.location||'');
+      const s1=allDay? `DTSTART;VALUE=DATE:${toDATE(start)}` : `DTSTART:${toUTCstamp(start)}`;
+      const s2=allDay? `DTEND;VALUE=DATE:${toDATE(end)}`   : `DTEND:${toUTCstamp(end)}`;
+      const lines=[
+        'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//AIT PD//pd-events//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT',
+        `UID:${uid}`,`DTSTAMP:${dtstamp}`,s1,s2,`SUMMARY:${summary}`,`DESCRIPTION:${desc}`,`LOCATION:${loc}`,'END:VEVENT','END:VCALENDAR'
+      ].join('\r\n');
+      return new Blob([lines],{type:'text/calendar'});
+    }
+    function mountAddCalMenu(container, ev){
+      const g=linkGoogle(ev), o=linkOutlook(ev), y=linkYahoo(ev);
+      const icsUrl = URL.createObjectURL(buildICS(ev));
+      const wrap=document.createElement('div'); wrap.className='addcal';
+      const btn=document.createElement('button'); btn.type='button'; btn.className='cta outline'; btn.textContent='Add to calendar';
+      const menu=document.createElement('div'); menu.className='addcal-menu';
+      const aG=document.createElement('a'); aG.href=g; aG.target='_blank'; aG.rel='noopener'; aG.textContent='Google Calendar';
+      const aO=document.createElement('a'); aO.href=o; aO.target='_blank'; aO.rel='noopener'; aO.textContent='Outlook (web)';
+      const aY=document.createElement('a'); aY.href=y; aY.target='_blank'; aY.rel='noopener'; aY.textContent='Yahoo Calendar';
+      const aI=document.createElement('a'); aI.href=icsUrl; aI.download=fileSafe(ev.summary)+'.ics'; aI.textContent='Download .ics';
+      menu.append(aG,aO,aY,aI);
+      btn.addEventListener('click', (e)=>{ e.stopPropagation(); wrap.classList.toggle('open'); });
+      document.addEventListener('click', ()=> wrap.classList.remove('open'));
+      wrap.append(btn,menu); container.appendChild(wrap);
+    }
+
+    // Show more/less (cards only)
+    function mountExpander(descEl){
+      if (descEl.closest('#agendaWrap')) return; // never on agenda
+      requestAnimationFrame(()=>{
+        if (!descEl) return;
+        const needs = descEl.scrollHeight > descEl.clientHeight + 2;
+        if (!needs) return;
+        const btn=document.createElement('button'); btn.type='button'; btn.className='more'; btn.textContent='Show more';
+        btn.addEventListener('click', ()=>{
+          const on=descEl.classList.toggle('expanded');
+          btn.textContent = on ? 'Show less' : 'Show more';
+        });
+        descEl.after(btn);
+      });
+    }
+
+    // Tabs
+    function initTabs(){
+      const tabCards=document.getElementById('tabCards');
+      const tabAgenda=document.getElementById('tabAgenda');
+      const cards=document.getElementById('cards');
+      const agenda=document.getElementById('agenda');
+      const select=(name)=>{
+        const showCards = name==='cards';
+        tabCards.setAttribute('aria-selected', showCards?'true':'false');
+        tabAgenda.setAttribute('aria-selected', showCards?'false':'true');
+        cards.setAttribute('aria-hidden', showCards?'false':'true');
+        agenda.setAttribute('aria-hidden', showCards?'true':'false');
+      };
+      tabCards.onclick=()=>select('cards');
+      tabAgenda.onclick=()=>select('agenda');
+    }
+
+    // Rail navigation
+    function initRailNav(){
+      const rail=document.getElementById('strip');
+      const prev=document.getElementById('prev');
+      const next=document.getElementById('next');
+      const cardW = rail.firstElementChild ? rail.firstElementChild.getBoundingClientRect().width + parseFloat(getComputedStyle(rail).columnGap||16) : 360;
+
+      function sync(){
+        const max = rail.scrollWidth - rail.clientWidth - 2;
+        prev.toggleAttribute('disabled', rail.scrollLeft <= 2);
+        next.toggleAttribute('disabled', rail.scrollLeft >= max);
+      }
+      function scrollByCards(n){
+        rail.scrollBy({ left: n*cardW, behavior:'smooth' });
+        setTimeout(sync, 350);
+      }
+      prev.onclick=()=>scrollByCards(-3);
+      next.onclick=()=>scrollByCards( 3);
+      rail.addEventListener('scroll', sync, {passive:true});
+      sync();
+    }
+
+    /* ===================== DATA ===================== */
+    function getRange(){
+      const now=new Date();
+      const end=new Date(); end.setMonth(end.getMonth()+MONTHS_AHEAD);
+      return { timeMin: now.toISOString(), timeMax: end.toISOString() };
+    }
+    async function fetchEvents(){
+      const {timeMin,timeMax}=getRange();
+      const base='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(CALENDAR_ID)+'/events';
+      const url=new URL(base);
+      url.searchParams.set('key', API_KEY);
+      url.searchParams.set('singleEvents','true');
+      url.searchParams.set('orderBy','startTime');
+      url.searchParams.set('maxResults', String(MAX_RESULTS));
+      url.searchParams.set('timeMin', timeMin);
+      url.searchParams.set('timeMax', timeMax);
+      const res=await fetch(url.toString());
+      if (!res.ok) throw new Error('Google API error '+res.status);
+      const data=await res.json();
+      return (data.items||[]).filter(ev=>!ev.status || ev.status!=='cancelled');
+    }
+
+    /* ===================== RENDER ==================== */
+    function renderCards(events){
+      const strip=document.getElementById('strip');
+      const empty=document.getElementById('empty');
+      strip.innerHTML=''; if (!events.length){ empty.hidden=false; return; } empty.hidden=true;
+
+      for (const ev of events){
+        const {start,end,allDay}=getTimes(ev);
+        const whenTxt=fmtRange(start,end,allDay);
+
+        const descHtml=ev.description||'';
+        const descText=htmlToText(descHtml);
+        const banner  = getTaggedUrlFromEither(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
+        const signup  = getTaggedUrlFromEither(descHtml, descText, 'SIGNUP') || getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
+        const zoom    = findZoomLink(descHtml, descText, ev.location);
+        const descClean = sanitizeDesc(descText);
+
+        const card=document.createElement('article'); card.className='card'; card.setAttribute('role','listitem');
+
+        const imgWrap=document.createElement('div'); imgWrap.className='img-wrap';
+        const img=document.createElement('img'); img.loading='lazy'; img.alt=''; img.referrerPolicy='no-referrer';
+        img.src=banner; img.onerror=()=>{ img.src=FALLBACK_IMAGE; };
+        imgWrap.appendChild(img);
+
+        const c=document.createElement('div'); c.className='content';
+        const title=document.createElement('div'); title.className='title'; title.textContent=ev.summary||'Untitled event';
+        const meta=document.createElement('div'); meta.className='meta';
+        const where=ev.location ? ` • ${ev.location}` : '';
+        meta.textContent=`${whenTxt}${where}`;
+
+        const desc=document.createElement('div'); desc.className='desc'; desc.textContent=descClean;
+
+        c.append(title,meta,desc);
+        mountExpander(desc);
+
+        if (signup){ const a=document.createElement('a'); a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up'; c.appendChild(a); }
+        if (zoom){ const z=document.createElement('a'); z.className='cta'; z.href=zoom; z.target='_blank'; z.rel='noopener'; z.textContent='Join on Zoom'; c.appendChild(z); }
+
+        mountAddCalMenu(c, ev);
+
+        card.append(imgWrap,c);
+        strip.appendChild(card);
+      }
+      initRailNav();
+    }
+
+    function renderAgenda(events){
+      const wrap=document.getElementById('agendaWrap');
+      wrap.innerHTML='';
+
+      for (const ev of events){
+        const {start,end,allDay}=getTimes(ev);
+        const when=fmtRange(start,end,allDay);
+
+        const descHtml=ev.description||'';
+        const descText=htmlToText(descHtml);
+        const banner  = getTaggedUrlFromEither(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
+        const signup  = getTaggedUrlFromEither(descHtml, descText, 'SIGNUP') || getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
+        const zoom    = findZoomLink(descHtml, descText, ev.location);
+        const descClean = sanitizeDesc(descText); // keep Format lines in description
+
+        const row=document.createElement('article'); row.className='row';
+
+        const thumb=document.createElement('img'); thumb.className='thumb'; thumb.src=banner; thumb.alt=''; thumb.loading='lazy'; thumb.referrerPolicy='no-referrer';
+        thumb.onerror=()=>{ thumb.src=FALLBACK_IMAGE; };
+
+        const body=document.createElement('div');
+        const h3=document.createElement('h3'); h3.textContent=ev.summary||'Untitled event';
+        const dw=document.createElement('div'); dw.className='when'; dw.textContent=when;
+
+        body.append(h3,dw);
+
+        if (ev.location){
+          const wl=document.createElement('div'); wl.className='where';
+          wl.innerHTML='<strong>Where:</strong> '+ev.location;
+          body.appendChild(wl);
+        }
+
+        const d=document.createElement('div'); d.className='desc'; d.textContent=descClean;
+        body.appendChild(d);
+
+        if (signup){ const a=document.createElement('a'); a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up'; body.appendChild(a); }
+        if (zoom){ const z=document.createElement('a'); z.className='cta'; z.href=zoom; z.target='_blank'; z.rel='noopener'; z.textContent='Join on Zoom'; body.appendChild(z); }
+
+        mountAddCalMenu(body, ev);
+
+        row.append(thumb, body);
+        wrap.appendChild(row);
+      }
+    }
+
+    /* ===================== BOOT ===================== */
+    (async function boot(){
+      try{
+        initTabs();
+        const items=await fetchEvents();
+        if (!items.length){ document.getElementById('empty').hidden=false; return; }
+        renderCards(items);
+        try { renderAgenda(items); }
+        catch(e){ console.error('Agenda render failed:', e); }
+      }catch(err){
+        const e=document.getElementById('empty');
+        e.hidden=false; e.textContent='Could not load events. ('+err.message+')';
+        console.error(err);
+      }
+    })();
+  </script>
 </body>
 </html>
