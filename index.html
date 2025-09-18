@@ -327,21 +327,24 @@ function renderAgenda(events){
 
     const body=document.createElement('div');
     const h3=document.createElement('h3'); h3.textContent=ev.summary || 'Untitled event';
-    const dw=document.createElement('div'); dw.className='when';   dw.textContent=when;
+
+    // when + location on ONE line
+    const dw=document.createElement('div'); 
+    dw.className='when';
+    dw.textContent = when + (ev.location ? ` • ${ev.location}` : '');
+
+    // description (keeps Format: inside body text if present)
+    const d=document.createElement('div'); 
+    d.className='desc'; 
+    d.textContent=descClean;
 
     body.append(h3, dw);
-
-    if (ev.location){
-      const wl=document.createElement('div'); wl.className='where';
-      wl.textContent = `Where: ${ev.location}`;
-      body.appendChild(wl);
-    }
-
-    const d=document.createElement('div'); d.className='desc'; d.textContent=descClean;
     if (d.textContent) body.appendChild(d);
 
     if (signup){
-      const a=document.createElement('a'); a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
+      const a=document.createElement('a'); 
+      a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; 
+      a.textContent='Sign up';
       body.appendChild(a);
     }
     if (zoom) {
@@ -349,7 +352,7 @@ function renderAgenda(events){
       z.href = zoom; z.target = '_blank'; z.rel = 'noopener';
       z.textContent = 'Join on Zoom';
       z.className = 'cta';
-      body.appendChild(z); /* <-- fixed: append to body */
+      body.appendChild(z);
     }
 
     row.append(thumb, body);
