@@ -234,7 +234,26 @@ function getTimes(ev){
   const allDay = !!ev.start?.date && !!ev.end?.date;
   return { start:s, end:e, allDay };
 }
+function mountExpander(descEl){
+  // Only for cards — skip if this is in agenda
+  if (descEl.closest('#agendaWrap')) return;
 
+  requestAnimationFrame(() => {
+    if (!descEl) return;
+    const needs = descEl.scrollHeight > descEl.clientHeight + 2;
+    if (!needs) return;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'more';       // uses your existing .more style
+    btn.textContent = 'Show more';
+    btn.addEventListener('click', () => {
+      const on = descEl.classList.toggle('expanded');
+      btn.textContent = on ? 'Show less' : 'Show more';
+    });
+    descEl.after(btn);
+  });
+}
 /* ========= Fetch ========= */
 async function fetchEvents(){
   const { timeMin, timeMax } = getRange();
@@ -287,7 +306,7 @@ function renderCards(events){
     const desc=document.createElement('div'); desc.className='desc'; desc.textContent = descClean;
 
     c.append(title, meta, desc);
-
+mountExpander(desc);
     if (signup){
       const a=document.createElement('a');
       a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
