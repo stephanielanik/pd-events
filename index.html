@@ -75,10 +75,12 @@
 
   .agenda-viewport{ max-height:70vh; overflow:auto; padding:0 var(--gap); box-sizing:border-box; }
   .agenda-wrap{ padding-top:6px; padding-bottom:12px; }
-  .row{ display:grid; grid-template-columns:96px 1fr; gap:16px;
-        background:var(--card); border-radius:var(--radius);
-        box-shadow:0 0 0 1px rgba(0,0,0,.07), var(--shadow);
-        padding:14px; margin-bottom:14px; }
+  .row{position: relative;               /* <-- add this line */
+  display:grid; grid-template-columns:96px 1fr; gap:16px;
+  background:var(--card); border-radius:var(--radius);
+  box-shadow:0 0 0 1px rgba(0,0,0,.07), var(--shadow);
+  padding:14px; margin-bottom:14px;
+}
   .thumb{ width:96px; height:96px; border-radius:12px; object-fit:cover; background:#e8eef5; }
   .row h3{ margin:0; font-size:1.35rem; }
   .row .when{ color:var(--muted); font-weight:700; margin:4px 0 2px; }
@@ -410,24 +412,36 @@ function renderAgenda(events){
     const descClean= sanitizeDesc(descText);
     const zoom     = findZoomLink(descHtml, descText, ev.location);
 
-    const row = document.createElement('article'); row.className='row';
+    const row = document.createElement('article'); 
+    row.className='row';
 
-    const thumb=document.createElement('img'); thumb.className='thumb';
+    // thumb
+    const thumb=document.createElement('img'); 
+    thumb.className='thumb';
     thumb.src=banner; thumb.alt=''; thumb.loading='lazy'; thumb.referrerPolicy='no-referrer';
     thumb.onerror=()=>{ thumb.src=FALLBACK_IMAGE; };
 
+    // body
     const body=document.createElement('div');
     const h3=document.createElement('h3'); h3.textContent=ev.summary || 'Untitled event';
-    const dw=document.createElement('div'); dw.className='when';
+
+    // date/time + location inline
+    const dw=document.createElement('div'); 
+    dw.className='when';
     dw.textContent = when + (ev.location ? ` • ${ev.location}` : '');
 
-    const d=document.createElement('div'); d.className='desc'; d.textContent=descClean;
+    // description (keeps "Format:" if author included it in the body)
+    const d=document.createElement('div'); 
+    d.className='desc'; 
+    d.textContent=descClean;
 
     body.append(h3, dw);
     if (d.textContent) body.appendChild(d);
 
     if (signup){
-      const a=document.createElement('a'); a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
+      const a=document.createElement('a'); 
+      a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; 
+      a.textContent='Sign up';
       body.appendChild(a);
     }
     if (zoom) {
@@ -438,7 +452,40 @@ function renderAgenda(events){
       body.appendChild(z);
     }
 
-    row.append(thumb, body);
+    // --- Add-to-calendar (agenda) ---
+    const addBtn = document.createElement('button');
+    addBtn.className = 'addcal-btn'; addBtn.type='button'; addBtn.title='Add to calendar';
+    const icon = document.createElement('img');
+    icon.src = ICON_URL; icon.alt = '';
+    addBtn.appendChild(icon);
+
+    const menu = document.createElement('div');
+    menu.className = 'addcal-menu hide';
+
+    const payload = {
+      title: ev.summary || 'Untitled event',
+      desc:  descClean,
+      location: ev.location || '',
+      startISO: start, endISO: end, allDay
+    };
+    const aGoogle  = document.createElement('a'); aGoogle.textContent  = 'Google Calendar';
+    aGoogle.href   = makeGoogleHref(payload);  aGoogle.target='_blank'; aGoogle.rel='noopener';
+
+    const aOutlook = document.createElement('a'); aOutlook.textContent = 'Outlook (web)';
+    aOutlook.href  = makeOutlookWebHref(payload); aOutlook.target='_blank'; aOutlook.rel='noopener';
+
+    const aICS     = document.createElement('a'); aICS.textContent     = 'Apple / .ics';
+    aICS.href      = makeICSHref({ ...payload, uid: ev.iCalUID || ev.id });
+    aICS.download  = (payload.title.replace(/[^\w\- ]+/g,'').trim() || 'event') + '.ics';
+
+    menu.append(aGoogle, aOutlook, aICS);
+
+    function closeMenus(){ menu.classList.add('hide'); }
+    addBtn.addEventListener('click', (e)=>{ e.stopPropagation(); menu.classList.toggle('hide'); });
+    document.addEventListener('click', closeMenus);
+
+    // assemble row
+    row.append(thumb, body, addBtn, menu);  // addBtn/menu positioned absolutely in top-right
     wrap.appendChild(row);
   }
 }
