@@ -101,6 +101,20 @@
   .agenda .cta { padding: 6px 10px; border-radius: 8px; font-size: .9rem; }
   .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
   [hidden]{ display:none !important; }
+
+  .addcal { position: relative; display: inline-block; }
+  .addcal > .cta { margin-top: 8px; }
+  .addcal-menu {
+    position: absolute; inset: auto 0 100% auto; /* appear above on Canvas if needed; change to 100% 0 auto auto for below */
+    display: none; min-width: 220px;
+    background: #fff; border: 1px solid rgba(0,0,0,.08); border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12); padding: 6px;
+    z-index: 10;
+  }
+  .addcal.open .addcal-menu { display: block; }
+  .addcal-menu a { display: block; padding: 8px 10px; border-radius: 8px; text-decoration: none; color: #0b6efd; font-weight: 600; }
+  .addcal-menu a:hover { background: #f3f6fb; }
+  .cta.outline { background: transparent; color: #004D86; border: 1px solid #ccd6e2; }
 </style>
 </head>
 <body>
@@ -298,7 +312,7 @@ if (zoom) {
     card.append(imgWrap, c);
     strip.appendChild(card);
   }
-
+mountAddCalMenu(c, ev);
   initRailNav();
 }
 
@@ -351,7 +365,7 @@ function renderAgenda(events){
   z.className = 'cta';
   body.appendChild(z);      // <-- append to the existing 'body' div
 }
-
+mountAddCalMenu(body /* or your details container */, ev);
     row.append(thumb, body);
     wrap.appendChild(row);
   }
@@ -400,7 +414,145 @@ function initTabs(){
   tabCards.addEventListener('click',  ()=>select('cards'));
   tabAgenda.addEventListener('click', ()=>select('agenda'));
 }
+// --- time helpers ---
+function pad(n){ return String(n).padStart(2,'0'); }
+function toUTCstamp(d){ // 20250131T235959Z
+  const z = new Date(d);
+  return z.getUTCFullYear() +
+    pad(z.getUTCMonth()+1) + pad(z.getUTCDate()) + 'T' +
+    pad(z.getUTCHours()) + pad(z.getUTCMinutes()) + pad(z.getUTCSeconds()) + 'Z';
+}
+function toDATE(d){ // 20250131
+  const x = new Date(d);
+  return x.getFullYear() + pad(x.getMonth()+1) + pad(x.getDate());
+}
 
+// --- URL enc ---
+const enc = encodeURIComponent;
+
+// --- Build deep links ---
+function linkGoogle(ev){
+  const { start, end, allDay } = getTimes(ev);
+  const text = ev.summary || 'Untitled event';
+  const details = (ev.description ? htmlToText(ev.description) : '').slice(0, 2000);
+  const loc = ev.location || '';
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Chicago';
+
+  let dates;
+  if(allDay){
+    // Google all-day uses YYYYMMDD/YYYYMMDD (end is exclusive → already correct from API)
+    const s = toDATE(start);
+    const e = toDATE(end);
+    dates = `${s}/${e}`;
+  }else{
+    const s = toUTCstamp(start);
+    const e = toUTCstamp(end);
+    dates = `${s}/${e}`;
+  }
+
+  const base = 'https://www.google.com/calendar/render?action=TEMPLATE';
+  return `${base}&text=${enc(text)}&dates=${enc(dates)}&details=${enc(details)}&location=${enc(loc)}&ctz=${enc(tz)}`;
+}
+
+function linkOutlook(ev){
+  const { start, end, allDay } = getTimes(ev);
+  const text = ev.summary || 'Untitled event';
+  const details = (ev.description ? htmlToText(ev.description) : '');
+  const loc = ev.location || '';
+  // Use ISO; Outlook accepts timezone suffix
+  const s = new Date(start).toISOString();
+  const e = new Date(end).toISOString();
+  const base = 'https://outlook.office.com/calendar/0/deeplink/compose';
+  return `${base}?path=/calendar/action/compose&rru=addevent&subject=${enc(text)}&body=${enc(details)}&location=${enc(loc)}&startdt=${enc(s)}&enddt=${enc(e)}&allday=${allDay ? 'true' : 'false'}`;
+}
+
+function linkYahoo(ev){
+  const { start, end, allDay } = getTimes(ev);
+  const text = ev.summary || 'Untitled event';
+  const details = (ev.description ? htmlToText(ev.description) : '');
+  const loc = ev.location || '';
+  const base = 'https://calendar.yahoo.com/?v=60&view=d&type=20';
+  if(allDay){
+    const s = toDATE(start), e = toDATE(end);
+    return `${base}&title=${enc(text)}&st=${enc(s)}&et=${enc(e)}&desc=${enc(details)}&in_loc=${enc(loc)}`;
+  }else{
+    const s = toUTCstamp(start), e = toUTCstamp(end);
+    return `${base}&title=${enc(text)}&st=${enc(s)}&et=${enc(e)}&desc=${enc(details)}&in_loc=${enc(loc)}`;
+  }
+}
+
+// --- ICS generation ---
+function foldICS(s){
+  // Simple fold to avoid super long lines (75 bytes is spec; this is pragmatic)
+  return String(s||'').replace(/\r?\n/g, '\\n').replace(/[,;]/g, m => (m === ',' ? '\\,' : '\\;'));
+}
+function fileSafe(name){
+  return (name||'event').toLowerCase().replace(/[^a-z0-9-_]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60) || 'event';
+}
+function buildICS(ev){
+  const { start, end, allDay } = getTimes(ev);
+  const uid = ev.iCalUID || ev.id || (Date.now()+'@pd-events');
+  const dtstamp = toUTCstamp(new Date());
+  const summary = foldICS(ev.summary || 'Untitled event');
+  const desc = foldICS(htmlToText(ev.description || ''));
+  const loc = foldICS(ev.location || '');
+  let dtStart, dtEnd, s1, s2;
+  if(allDay){
+    dtStart = toDATE(start);
+    dtEnd = toDATE(end);
+    s1 = `DTSTART;VALUE=DATE:${dtStart}`;
+    s2 = `DTEND;VALUE=DATE:${dtEnd}`;
+  }else{
+    dtStart = toUTCstamp(start);
+    dtEnd = toUTCstamp(end);
+    s1 = `DTSTART:${dtStart}`;
+    s2 = `DTEND:${dtEnd}`;
+  }
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//AIT PD//pd-events//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTAMP:${dtstamp}`,
+    s1,
+    s2,
+    `SUMMARY:${summary}`,
+    `DESCRIPTION:${desc}`,
+    `LOCATION:${loc}`,
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+  return new Blob([lines], { type: 'text/calendar' });
+}
+
+// UI helper to attach the menu to a container element
+function mountAddCalMenu(container, ev){
+  // Build links
+  const g = linkGoogle(ev);
+  const o = linkOutlook(ev);
+  const y = linkYahoo(ev);
+  const icsBlob = buildICS(ev);
+  const icsUrl = URL.createObjectURL(icsBlob);
+  // Root
+  const wrap = document.createElement('div'); wrap.className = 'addcal';
+  const btn = document.createElement('button'); btn.type='button'; btn.className='cta outline'; btn.textContent='Add to calendar';
+  const menu = document.createElement('div'); menu.className='addcal-menu';
+  const aG = document.createElement('a'); aG.href=g; aG.target='_blank'; aG.rel='noopener'; aG.textContent='Google Calendar';
+  const aO = document.createElement('a'); aO.href=o; aO.target='_blank'; aO.rel='noopener'; aO.textContent='Outlook (web)';
+  const aY = document.createElement('a'); aY.href=y; aY.target='_blank'; aY.rel='noopener'; aY.textContent='Yahoo Calendar';
+  const aI = document.createElement('a'); aI.href=icsUrl; aI.download = fileSafe(ev.summary)+'.ics'; aI.textContent='Download .ics';
+  menu.append(aG, aO, aY, aI);
+  btn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    wrap.classList.toggle('open');
+  });
+  document.addEventListener('click', ()=> wrap.classList.remove('open'));
+  wrap.append(btn, menu);
+  container.appendChild(wrap);
+}
 /* ========= Boot ========= */
 (async function boot(){
   try{
