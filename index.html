@@ -253,70 +253,62 @@ async function fetchEvents(){
   return (data.items || []).filter(ev => ev.status !== 'cancelled');
 }
 
-/* ========= Render: Cards ========= */
 function renderCards(events){
   const strip = document.getElementById('strip');
+  const empty = document.getElementById('empty');
   strip.innerHTML = '';
+  if (!events.length){ empty.hidden = false; return; }
+  empty.hidden = true;
 
   for (const ev of events){
     const { start, end, allDay } = getTimes(ev);
-    const when = fmtRange(start, end, allDay);
+    const whenTxt = fmtRange(start, end, allDay);
 
     const descHtml = ev.description || '';
     const descText = htmlToText(descHtml);
     const banner   = getTaggedUrlFromEither(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
     const signup   = getTaggedUrlFromEither(descHtml, descText, 'SIGNUP') ||
                      getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
+    const zoom     = findZoomLink(descHtml, descText, ev.location);
     const descClean= sanitizeDesc(descText);
-    const zoom = findZoomLink(descHtml, descText, ev.location);
-    
-    const card = document.createElement('article');
-    card.className = 'card'; card.setAttribute('role','listitem');
 
-    const imgWrap = document.createElement('div'); imgWrap.className='img-wrap';
-    const img = document.createElement('img');
-    img.src=banner; img.alt=''; img.loading='lazy'; img.referrerPolicy='no-referrer';
-    img.onerror=()=>{ img.src=FALLBACK_IMAGE; };
+    const card = document.createElement('article'); card.className='card'; card.setAttribute('role','listitem');
+
+    const imgWrap=document.createElement('div'); imgWrap.className='img-wrap';
+    const img=document.createElement('img'); img.loading='lazy'; img.alt=''; img.referrerPolicy='no-referrer';
+    img.src=banner; img.onerror=()=>{ img.src=FALLBACK_IMAGE; };
     imgWrap.appendChild(img);
 
-    const c = document.createElement('div'); c.className='content';
-    const title = document.createElement('div'); title.className='title'; title.textContent = ev.summary || 'Untitled event';
-    const meta  = document.createElement('div'); meta.className='meta'; meta.textContent = when + (ev.location ? ` • ${ev.location}` : '');
-    const desc  = document.createElement('div'); desc.className='desc'; desc.textContent = descClean;
-
-    let moreBtn;
-    if (descClean.split(/\s+/).length > 24){
-      moreBtn = document.createElement('button'); moreBtn.className='more'; moreBtn.type='button';
-      moreBtn.textContent='Show more';
-      moreBtn.addEventListener('click', ()=>{
-        const expanded = desc.classList.toggle('expanded');
-        moreBtn.textContent = expanded ? 'Show less' : 'Show more';
-      });
-    }
+    const c=document.createElement('div'); c.className='content';
+    const title=document.createElement('div'); title.className='title'; title.textContent = ev.summary || 'Untitled event';
+    const meta=document.createElement('div'); meta.className='meta';
+    const where = ev.location ? ` • ${ev.location}` : '';
+    meta.textContent = `${whenTxt}${where}`;
+    const desc=document.createElement('div'); desc.className='desc'; desc.textContent = descClean;
 
     c.append(title, meta, desc);
-    if (moreBtn) c.appendChild(moreBtn);
 
     if (signup){
       const a=document.createElement('a');
       a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
       c.appendChild(a);
     }
-if (zoom) {
-  const btnZ = document.createElement('a');
-  btnZ.href = zoom; btnZ.target = '_blank'; btnZ.rel = 'noopener';
-  btnZ.className = 'cta';
-  btnZ.textContent = 'Join on Zoom';
-  c.appendChild(btnZ);
-}
+    if (zoom){
+      const z=document.createElement('a');
+      z.className='cta'; z.href=zoom; z.target='_blank'; z.rel='noopener'; z.textContent='Join on Zoom';
+      c.appendChild(z);
+    }
+
+    // Add-to-calendar
+    mountAddCalMenu(c, ev);
+
     card.append(imgWrap, c);
     strip.appendChild(card);
   }
-mountAddCalMenu(c, ev);
+
   initRailNav();
 }
 
-/* ========= Render: Agenda ========= */
 function renderAgenda(events){
   const wrap = document.getElementById('agendaWrap');
   wrap.innerHTML = '';
@@ -330,9 +322,9 @@ function renderAgenda(events){
     const banner   = getTaggedUrlFromEither(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
     const signup   = getTaggedUrlFromEither(descHtml, descText, 'SIGNUP') ||
                      getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
+    const zoom     = findZoomLink(descHtml, descText, ev.location);
     const descClean= sanitizeDesc(descText);
-    const zoom = findZoomLink(descHtml, descText, ev.location);
-    
+
     const row = document.createElement('article'); row.className='row';
 
     const thumb=document.createElement('img'); thumb.className='thumb';
@@ -355,17 +347,19 @@ function renderAgenda(events){
     if (d.textContent)  body.append(d);
 
     if (signup){
-      const a=document.createElement('a'); a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
+      const a=document.createElement('a');
+      a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
       body.appendChild(a);
     }
-    if (zoom) {
-  const z = document.createElement('a');
-  z.href = zoom; z.target = '_blank'; z.rel = 'noopener';
-  z.textContent = 'Join on Zoom';
-  z.className = 'cta';
-  body.appendChild(z);      // <-- append to the existing 'body' div
-}
-mountAddCalMenu(body /* or your details container */, ev);
+    if (zoom){
+      const z=document.createElement('a');
+      z.className='cta'; z.href=zoom; z.target='_blank'; z.rel='noopener'; z.textContent='Join on Zoom';
+      body.appendChild(z);
+    }
+
+    // Add-to-calendar
+    mountAddCalMenu(body, ev);
+
     row.append(thumb, body);
     wrap.appendChild(row);
   }
