@@ -577,6 +577,11 @@ function initTabs(){
 
   function enhanceTabs(){
   const tabs = [document.getElementById('tabCards'), document.getElementById('tabAgenda')];
+     enhanceTabs();
+
+  function select(which){ ... }
+  ...
+}
   function setState(activeIdx){
     tabs.forEach((t,i)=>{
       const sel = i===activeIdx;
@@ -623,7 +628,6 @@ function initTabs(){
 (async function boot(){
   try{
     initTabs();
-    enhanceTabs();
     const events = await fetchEvents();
     if (!events.length){ document.getElementById('empty').hidden = false; return; }
     renderCards(events);
