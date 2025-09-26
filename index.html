@@ -63,7 +63,12 @@
   .card:hover,
  .card:focus-within{z-index: 5;               /* lift the active/hovered card above neighbors */
 }
- 
+ .presenter{
+  font-weight: 600;
+  color:#004D86;         /* UNK blue */
+  margin-top:2px;
+  margin-bottom:6px;
+}
   .img-wrap{ position:relative; aspect-ratio:16/9; overflow:hidden;
              border-top-left-radius:var(--radius); border-top-right-radius:var(--radius);
              background:#e8eef5; }
@@ -227,6 +232,24 @@ function getTagUrl(descHtml, descText, tag) {
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
+  // If the first non-empty line is **something**, pull it out as "presenter"
+function extractPresenter(text){
+  if(!text) return { presenter:'', body:'' };
+  const lines = text.split(/\r?\n/);
+  // find first non-empty line index
+  let i = 0;
+  while(i < lines.length && !lines[i].trim()) i++;
+  if(i >= lines.length) return { presenter:'', body: text.trim() };
+
+  const m = lines[i].trim().match(/^\*\*(.+?)\*\*$/);
+  if(m){
+    const presenter = m[1].trim();
+    // remove that line and return the rest
+    const rest = [...lines.slice(0,i), ...lines.slice(i+1)].join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    return { presenter, body: rest };
+  }
+  return { presenter:'', body: text.trim() };
+}
 function findZoomLink(descHtml, descText, location) {
   const tagged = getTagUrl(descHtml, descText, 'ZOOM');
   if (tagged) return tagged;
@@ -375,6 +398,7 @@ function renderCards(events){
     const isWebinar = /zoom\.us\/webinar\//i.test(zoomUrl);
     const signup = getTagUrl(descHtml, descText, 'SIGNUP') || (isWebinar ? zoomUrl : '');
     const descClean = stripTags(descText);
+    const { presenter, body: descBody } = extractPresenter(stripTags(descText));
     const zoom     = findZoomLink(descHtml, descText, ev.location);
 
     const card = document.createElement('article');
@@ -421,7 +445,13 @@ function renderCards(events){
     const c = document.createElement('div'); c.className='content';
     const title = document.createElement('div'); title.className='title'; title.textContent = ev.summary || 'Untitled event';
     const meta  = document.createElement('div'); meta.className='meta'; meta.textContent = when + (ev.location ? ` • ${ev.location}` : '');
-    const desc  = document.createElement('div'); desc.className='desc'; desc.textContent = descClean;
+    if (presenter) {
+  const pres = document.createElement('div');
+  pres.className = 'presenter';
+  pres.textContent = presenter; // shows exactly what's between ** **
+  c.appendChild(pres);
+}
+    const desc  = document.createElement('div'); desc.className='desc'; desc.textContent = descBody;
 
     let moreBtn;
     if (descClean.split(/\s+/).length > 24){
@@ -474,7 +504,7 @@ function renderAgenda(events){
 const zoomUrl   = getTagUrl(descHtml, descText, 'ZOOM');
 const isWebinar = /zoom\.us\/webinar\//i.test(zoomUrl);
 const signup    = getTagUrl(descHtml, descText, 'SIGNUP') || (isWebinar ? zoomUrl : '');
-const descClean = stripTags(descText);
+const { presenter, body: descBody } = extractPresenter(stripTags(descText));
 
     const row = document.createElement('article'); 
     row.className='row';
@@ -493,11 +523,16 @@ const descClean = stripTags(descText);
     const dw=document.createElement('div'); 
     dw.className='when';
     dw.textContent = when + (ev.location ? ` • ${ev.location}` : '');
-
+if (presenter) {
+  const pres = document.createElement('div');
+  pres.className = 'presenter';
+  pres.textContent = presenter;
+  right.appendChild(pres);   // or whatever your right/content container var is
+}
     // description (keeps "Format:" if author included it in the body)
     const d=document.createElement('div'); 
     d.className='desc'; 
-    d.textContent=descClean;
+    d.textContent=descBody;
 
     body.append(h3, dw);
     if (d.textContent) body.appendChild(d);
