@@ -33,6 +33,7 @@
   .carousel{ position:relative; padding:0 var(--rail-pad); }
   .strip{
     display:grid;
+    position: relative;
     grid-auto-flow:column;
     grid-auto-columns:minmax(290px, calc((min(1200px, 100%) - (var(--gap)*2)) / 3));
     gap:var(--gap);
@@ -44,6 +45,17 @@
     padding-right: calc(var(--gap) * .5);
     scroll-padding-right: calc(var(--gap) * .5);
   }
+  #empty{
+  position: absolute;
+  inset: 0;                     /* stretch to edges of the strip */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  text-align: center;
+  color: #445;
+  pointer-events: none;         /* clicks pass through when shown */
+}
   .strip > article:first-child{ scroll-margin-left: var(--gap); }
 
   .card{ background:var(--card); border-radius:var(--radius); box-shadow:0 0 0 1px rgba(0,0,0,.07),var(--shadow); }
@@ -72,7 +84,9 @@
   #prevBtn{ left:8px; }  #nextBtn{ right:8px; }
   .nav:hover{ background:var(--brand-hover); } .nav:active{ background:var(--brand-active); }
   .nav[disabled]{ background:#d5dbe3; color:#fff; cursor:not-allowed; opacity:.85; }
-
+.carousel { position: relative; }  /* already present in your file; harmless to repeat */
+.empty-overlay{position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; text-align: center; color: #445; pointer-events: none; font-weight: 600;
+}
   .agenda-viewport{ max-height:70vh; overflow:auto; padding:0 var(--gap); box-sizing:border-box; }
   .agenda-wrap{ padding-top:6px; padding-bottom:12px; }
   .row{position: relative;               /* <-- add this line */
@@ -137,6 +151,7 @@
         <button id="nextBtn" class="nav" aria-label="Next">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
+        <div id="emptyCards" class="empty-overlay" hidden>No upcoming events found.</div>
       </div>
     </div>
   </section>
@@ -280,7 +295,27 @@ function makeOutlookWebHref({title, desc, location, startISO, endISO}){
   if (desc) u.searchParams.set('body', desc);
   return u.toString();
 }
+// Show/hide the empty overlay and disable/enable arrows in Cards view
+function setCardsEmptyState(isEmpty){
+  const empty = document.getElementById('emptyCards');
+  const prev  = document.getElementById('prevBtn');
+  const next  = document.getElementById('nextBtn');
+  if (!empty || !prev || !next) return;
 
+  if (isEmpty){
+    empty.hidden = false;
+    prev.setAttribute('disabled','');
+    next.setAttribute('disabled','');
+    prev.setAttribute('aria-disabled','true');
+    next.setAttribute('aria-disabled','true');
+  }else{
+    empty.hidden = true;
+    prev.removeAttribute('disabled');
+    next.removeAttribute('disabled');
+    prev.removeAttribute('aria-disabled');
+    next.removeAttribute('aria-disabled');
+  }
+}
 /* ========= Fetch ========= */
 async function fetchEvents(){
   const { timeMin, timeMax } = getRange();
@@ -302,7 +337,19 @@ async function fetchEvents(){
 /* ========= Render: Cards ========= */
 function renderCards(events){
   const strip = document.getElementById('strip');
+  if (!strip) return;
+
+  // Clear the strip
   strip.innerHTML = '';
+
+  // If no events, show overlay + disable arrows and stop
+  if (!events || !events.length){
+    setCardsEmptyState(true);
+    return;
+  }
+
+  // There are events: hide overlay + enable arrows
+  setCardsEmptyState(false);
 
   for (const ev of events){
     const { start, end, allDay } = getTimes(ev);
