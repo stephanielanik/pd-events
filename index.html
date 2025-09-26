@@ -32,7 +32,7 @@
 
   .carousel{ position:relative; padding:0 var(--rail-pad); }
   .strip{
-    display:grid;
+   display:grid;
     position: relative;
     grid-auto-flow:column;
     grid-auto-columns:minmax(290px, calc((min(1200px, 100%) - (var(--gap)*2)) / 3));
@@ -204,18 +204,29 @@ function fmtRange(startISO, endISO, allDay){
     return same ? `${d1} • ${t1}–${t2}` : `${d1} ${t1} → ${e.toLocaleDateString(undefined, optsD)} ${t2}`;
   }
 }
-function htmlToText(html){
-  const d = document.createElement('div'); d.innerHTML = html || '';
+ffunction htmlToText(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html || '';
   d.querySelectorAll('style,script').forEach(el => el.remove());
-  const text = d.textContent || '';
-  return text.replace(/\u00A0/g,' ').replace(/\s+\n/g,"\n").trim();
+  return (d.textContent || '')
+    .replace(/\u00A0/g, ' ')
+    .replace(/[ \t]+\n/g, '\n')
+    .trim();
 }
-function getTaggedUrlFromEither(descHtml, descText, tag){
-  const hm = (descHtml||'').replace(/\u00A0/g,' ').match(new RegExp(tag+'\\s*:\\s*<a[^>]+href="([^"]+)"','i'));
-  if (hm?.[1]) { try { new URL(hm[1]); return hm[1]; } catch {} }
-  const tm = (descText||'').match(new RegExp(tag+'\\s*:\\s*(https?:\\/\\/\\S+)','i'));
-  if (tm?.[1]) { try { new URL(tm[1]); return tm[1]; } catch {} }
-  return '';
+function getTagUrl(descHtml, descText, tag) {
+  const normHtml = (descHtml || '').replace(/\u00A0/g, ' ');
+  const hm = normHtml.match(new RegExp(tag + '\\s*:\\s*<a[^>]+href="([^"]+)"', 'i'));
+  if (hm && hm[1]) return hm[1];
+  const tm = (descText || '').match(new RegExp(tag + '\\s*:\\s*(https?:\\/\\/\\S+)', 'i'));
+  return tm ? tm[1] : '';
+}
+ function stripTags(descText){
+  return (descText || '')
+    .replace(/\u00A0/g, ' ')
+    .replace(/\s*(BANNER|SIGNUP|REGISTER|ZOOM)\s*:\s*https?:\/\/\S+/gi, '')
+    .replace(/\s*(BANNER|SIGNUP|REGISTER|ZOOM)\s*:\s*<a[^>]+href="[^"]+"[^>]*>[^<]*<\/a>/gi, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 function findZoomLink(descHtml, descText, location) {
   const tagged = getTaggedUrlFromEither(descHtml, descText, 'ZOOM');
@@ -231,7 +242,7 @@ function findZoomLink(descHtml, descText, location) {
 }
 function sanitizeDesc(descText) {
   if (!descText) return '';
-  return descText
+  return descText (t || '')
     .replace(/\s*(BANNER|REGISTER|SIGNUP|ZOOM)\s*:\s*https?:\/\/\S+/gi, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
@@ -362,11 +373,14 @@ function renderCards(events){
     const when = fmtRange(start, end, allDay);
 
     const descHtml = ev.description || '';
+    const descHtml = ev.description || '';
     const descText = htmlToText(descHtml);
-    const banner   = getTaggedUrlFromEither(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
-    const signup   = getTaggedUrlFromEither(descHtml, descText, 'SIGNUP') ||
-                     getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
-    const descClean= sanitizeDesc(descText);
+
+    const banner  = getTagUrl(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
+    const zoomUrl = getTagUrl(descHtml, descText, 'ZOOM');
+    const isWebinar = /zoom\.us\/webinar\//i.test(zoomUrl);
+    const signup = getTagUrl(descHtml, descText, 'SIGNUP') || (isWebinar ? zoomUrl : '');
+    const descClean = stripTags(descText);
     const zoom     = findZoomLink(descHtml, descText, ev.location);
 
     const card = document.createElement('article');
@@ -428,19 +442,22 @@ function renderCards(events){
     c.append(title, meta, desc);
     if (moreBtn) c.appendChild(moreBtn);
 
-    if (signup){
-      const a=document.createElement('a');
-      a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; a.textContent='Sign up';
-      c.appendChild(a);
-    }
-    if (zoom) {
-      const btnZ = document.createElement('a');
-      btnZ.href = zoom; btnZ.target = '_blank'; btnZ.rel = 'noopener';
-      btnZ.className = 'cta';
-      btnZ.textContent = 'Join on Zoom';
-      c.appendChild(btnZ);
-    }
+   // === CTA buttons (keep only this block) ===
+if (zoomUrl && !isWebinar) {
+  makeCta('Join on Zoom', zoomUrl);
+} else if (signup) {
+  makeCta('Sign up', signup);
+}
 
+function makeCta(label, href) {
+  const a = document.createElement('a');
+  a.className = 'cta';
+  a.href = href;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.textContent = label;
+  c.appendChild(a);
+}
     card.append(imgWrap, c);
     strip.appendChild(card);
   }
@@ -459,11 +476,11 @@ function renderAgenda(events){
 
     const descHtml = ev.description || '';
     const descText = htmlToText(descHtml);
-    const banner   = getTaggedUrlFromEither(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
-    const signup   = getTaggedUrlFromEither(descHtml, descText, 'SIGNUP') ||
-                     getTaggedUrlFromEither(descHtml, descText, 'REGISTER');
-    const descClean= sanitizeDesc(descText);
-    const zoom     = findZoomLink(descHtml, descText, ev.location);
+    const banner    = getTagUrl(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
+const zoomUrl   = getTagUrl(descHtml, descText, 'ZOOM');
+const isWebinar = /zoom\.us\/webinar\//i.test(zoomUrl);
+const signup    = getTagUrl(descHtml, descText, 'SIGNUP') || (isWebinar ? zoomUrl : '');
+const descClean = stripTags(descText);
 
     const row = document.createElement('article'); 
     row.className='row';
@@ -491,19 +508,19 @@ function renderAgenda(events){
     body.append(h3, dw);
     if (d.textContent) body.appendChild(d);
 
-    if (signup){
-      const a=document.createElement('a'); 
-      a.className='cta'; a.href=signup; a.target='_blank'; a.rel='noopener'; 
-      a.textContent='Sign up';
-      body.appendChild(a);
-    }
-    if (zoom) {
-      const z = document.createElement('a');
-      z.href = zoom; z.target = '_blank'; z.rel = 'noopener';
-      z.textContent = 'Join on Zoom';
-      z.className = 'cta';
-      body.appendChild(z);
-    }
+ if (zoomUrl && !isWebinar) {
+  addAgendaCta(body, 'Join on Zoom', zoomUrl);
+} else if (signup) {
+  addAgendaCta(body, 'Sign up', signup);
+}
+
+function addAgendaCta(container, label, href){
+  const a = document.createElement('a');
+  a.className = 'cta';
+  a.href = href; a.target = '_blank'; a.rel = 'noopener';
+  a.textContent = label;
+  container.appendChild(a);
+}
 
     // --- Add-to-calendar (agenda) ---
     const addBtn = document.createElement('button');
