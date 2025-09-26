@@ -31,19 +31,23 @@
   .tab[aria-selected="true"]{ background:var(--brand); color:#fff; }
 
   .carousel{ position:relative; padding:0 var(--rail-pad); }
- .strip{
-  display:grid;
-  position:relative;
-  grid-auto-flow:column;
-  grid-auto-columns:minmax(290px, calc((min(1200px, 100%) - (var(--gap)*2)) / 3));
-  gap:var(--gap);
-  overflow-x:auto;
-  scroll-snap-type:x mandatory;
-  padding-left:var(--gap);
-  padding-bottom:12px;
-  scroll-padding-left:var(--gap);
-  padding-right:calc(var(--gap) * .5);
-  scroll-padding-right:calc(var(--gap) * .5);
+.strip{
+  display: grid;
+  position: relative;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(290px, calc((min(1200px, 100%) - (var(--gap)*2)) / 3));
+  gap: var(--gap);
+
+  overflow-x: auto;
+  padding-left: var(--gap);
+  padding-right: calc(var(--gap) * .5);
+  padding-bottom: 12px;
+
+  /* snap settings – keep these once, and keep them in sync */
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: var(--gap);          /* must match padding-left */
+  /* optional if you want right edge breathing room */
+  scroll-padding-right: calc(var(--gap) * .5);
 }
   #empty{
   position: absolute;
@@ -59,9 +63,10 @@
   .strip > article:first-child{ scroll-margin-left: var(--gap); }
 
   .card{ background:var(--card); border-radius:var(--radius); box-shadow:0 0 0 1px rgba(0,0,0,.07),var(--shadow); position: relative;
-  box-sizing: border-box; min-width: 0;}
+  box-sizing: border-box; min-width: 0; scroll-snap-align: start;}
   .card:hover,
  .card:focus-within{z-index: 5;               /* lift the active/hovered card above neighbors */
+                    
 }
  .presenter{
   font-weight: 600;
@@ -617,28 +622,36 @@ function addAgendaCta(container, label, href){
   }
 }
 
-/* ========= Carousel arrows ========= */
+/* ========= Carousel arrows (1-card step) ========= */
 function initRailNav(){
-  const strip   = document.getElementById('strip');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  if (!strip || !prevBtn || !nextBtn) return;
+  const rail = document.getElementById('strip');
+  const prev = document.getElementById('prevBtn');
+  const next = document.getElementById('nextBtn');
+  if (!rail || !prev || !next) return;
 
   const eps = 1;
-  const maxScrollLeft = el => el.scrollWidth - el.clientWidth;
+
+  // Measure one card and the CSS gap so we step cleanly card-by-card
+  const firstCard = rail.querySelector('.card');
+  const gap = () =>
+    parseFloat(getComputedStyle(rail).gap || getComputedStyle(rail).columnGap || 0);
+  const step = () => (firstCard?.getBoundingClientRect().width ?? rail.clientWidth) + gap();
+
+  const maxScrollLeft = () => rail.scrollWidth - rail.clientWidth;
 
   function updateArrows(){
-    const max = maxScrollLeft(strip);
-    const sl  = strip.scrollLeft;
+    const max = maxScrollLeft();
+    const sl  = rail.scrollLeft;
     const noOverflow = max <= eps;
-    prevBtn.disabled = noOverflow || sl <= eps;
-    nextBtn.disabled = noOverflow || (max - sl) <= eps;
+    prev.disabled = noOverflow || sl <= eps;
+    next.disabled = noOverflow || (max - sl) <= eps;
   }
 
-  prevBtn.onclick = () => strip.scrollBy({ left: -strip.clientWidth, behavior:'smooth' });
-  nextBtn.onclick = () => strip.scrollBy({ left:  strip.clientWidth, behavior:'smooth' });
-  strip.addEventListener('scroll', updateArrows, { passive:true });
-  window.addEventListener('resize', () => requestAnimationFrame(updateArrows));
+  prev.onclick = () => rail.scrollBy({ left: -step(), behavior: 'smooth' });
+  next.onclick = () => rail.scrollBy({ left:  step(), behavior: 'smooth' });
+
+  rail.addEventListener('scroll', updateArrows, { passive: true });
+  window.addEventListener('resize', updateArrows);
   requestAnimationFrame(updateArrows);
 }
 
