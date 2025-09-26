@@ -117,7 +117,6 @@
 
   <div class="widget-shell">
     <div class="rail-margins">
-      <h1>Upcoming AIT PD Opportunities</h1>
       <div class="tabs" role="tablist" aria-label="View">
         <button id="tabCards"  class="tab" role="tab" aria-selected="true"  aria-controls="panelCards">Cards</button>
         <button id="tabAgenda" class="tab" role="tab" aria-selected="false" aria-controls="panelAgenda">Agenda</button>
@@ -522,6 +521,38 @@ function initTabs(){
   const panelCards  = document.getElementById('panelCards');
   const panelAgenda = document.getElementById('panelAgenda');
 
+  function enhanceTabs(){
+  const tabs = [document.getElementById('tabCards'), document.getElementById('tabAgenda')];
+  function setState(activeIdx){
+    tabs.forEach((t,i)=>{
+      const sel = i===activeIdx;
+      t.setAttribute('aria-selected', String(sel));
+      t.setAttribute('tabindex', sel ? '0' : '-1');
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !sel;
+    });
+  }
+  // initialize
+  setState(0);
+
+  tabs.forEach((t, idx)=>{
+    t.addEventListener('keydown', (e)=>{
+      const last = tabs.length - 1;
+      let i = idx;
+      if (e.key === 'ArrowRight') i = (idx === last) ? 0 : idx + 1;
+      else if (e.key === 'ArrowLeft') i = (idx === 0) ? last : idx - 1;
+      else if (e.key === 'Home') i = 0;
+      else if (e.key === 'End') i = last;
+      else return;
+      e.preventDefault();
+      setState(i);
+      tabs[i].focus();
+    });
+    t.addEventListener('click', ()=>{
+      setState(idx);
+      if (idx===0) requestAnimationFrame(initRailNav);
+    });
+  });
+}
   function select(which){
     const showCards = which === 'cards';
     tabCards.setAttribute('aria-selected', String(showCards));
@@ -538,6 +569,7 @@ function initTabs(){
 (async function boot(){
   try{
     initTabs();
+    enhanceTabs();
     const events = await fetchEvents();
     if (!events.length){ document.getElementById('empty').hidden = false; return; }
     renderCards(events);
