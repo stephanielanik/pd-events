@@ -550,35 +550,33 @@ const ctaWrap = document.createElement('div');
 ctaWrap.className = 'cta-wrap';
 
 if (zoomUrl && !isWebinar) makeCta('Join on Zoom', zoomUrl);
-else if (signup)          makeCta('Sign up', signup);
+else if (signup)           makeCta('Sign up', signup);
 
 function makeCta(label, href){
   const a = document.createElement('a');
   a.className = 'cta';
-  a.href = href; a.target = '_blank'; a.rel = 'noopener';
+  a.href = href; 
+  a.target = '_blank'; 
+  a.rel = 'noopener';
   a.textContent = label;
   ctaWrap.appendChild(a);
 }
 
-// assemble in order
+// assemble in order so we can measure real sizes
 c.append(title, meta, desc, ctaWrap);
 card.append(imgWrap, c);
 strip.appendChild(card);
 
 // ---- after in DOM: clamp desc by available pixels; add Show more if needed ----
 requestAnimationFrame(() => {
-  const cardH = card.clientHeight;       // fixed by CSS
-  const imgH  = imgWrap.clientHeight;
-  const contentH = cardH - imgH;         // space under the image
+  const cardH    = card.clientHeight;     // from CSS
+  const imgH     = imgWrap.clientHeight;
+  const contentH = cardH - imgH;          // space under the image
 
-  // title + meta + cta + rough gaps between them
-  const nonDescH =
-    title.offsetHeight +
-    meta.offsetHeight  +
-    ctaWrap.offsetHeight +
-    16; // small fudge for vertical gaps
+  // title + meta + CTA area + a bit of breathing room
+  const nonDescH = title.offsetHeight + meta.offsetHeight + ctaWrap.offsetHeight + 16;
 
-  const descMax = Math.max(80, contentH - nonDescH);  // never less than 80px
+  const descMax = Math.max(80, contentH - nonDescH);   // never less than 80px
   desc.style.maxHeight = `${descMax}px`;
 
   if (desc.scrollHeight > descMax + 1){
@@ -586,20 +584,19 @@ requestAnimationFrame(() => {
     moreBtn.className = 'more';
     moreBtn.type = 'button';
     moreBtn.textContent = 'Show more';
+
     // place the button above CTAs
     c.insertBefore(moreBtn, ctaWrap);
 
-    let expanded = false;
     moreBtn.addEventListener('click', () => {
-      expanded = !expanded;
-      c.classList.toggle('desc-scroll', expanded); // makes desc scrollable
+      const expanded = c.classList.toggle('desc-scroll');  // makes .desc scrollable
       moreBtn.textContent = expanded ? 'Show less' : 'Show more';
     });
   }
-});
+}); // end rAF
+initRailNav();
 
-  initRailNav();
-}
+} // <-- END of renderCards
 
 /* ========= Render: Agenda (location inline) ========= */
 function renderAgenda(events){
