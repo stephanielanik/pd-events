@@ -42,7 +42,8 @@
   padding-left: var(--gap);
   padding-right: calc(var(--gap) * .5);
   padding-bottom: 12px;
-
+overflow-y: visible;     /* allow the hover-lift to show */
+  padding-top: 2px;        /* tiny buffer for the top shadow */
   /* snap settings – keep these once, and keep them in sync */
   scroll-snap-type: x mandatory;
   scroll-padding-left: var(--gap);          /* must match padding-left */
@@ -507,18 +508,24 @@ function renderCards(events){
 }
     const desc  = document.createElement('div'); desc.className='desc'; desc.textContent = descBody;
 
-    let moreBtn;
-    if (descClean.split(/\s+/).length > 24){
-      moreBtn = document.createElement('button'); moreBtn.className='more'; moreBtn.type='button';
-      moreBtn.textContent='Show more';
-      moreBtn.addEventListener('click', ()=>{
-        const expanded = desc.classList.toggle('expanded');
-        moreBtn.textContent = expanded ? 'Show less' : 'Show more';
-      });
-    }
+ // Add text to the card first so it has real size
+c.append(title, meta, desc);
 
-    c.append(title, meta, desc);
-    if (moreBtn) c.appendChild(moreBtn);
+// Now measure if it's actually clamped/overflowing
+requestAnimationFrame(() => {
+  const overflows = desc.scrollHeight > desc.clientHeight + 1; // tiny fudge
+  if (overflows) {
+    const moreBtn = document.createElement('button');
+    moreBtn.className = 'more';
+    moreBtn.type = 'button';
+    moreBtn.textContent = 'Show more';
+    moreBtn.addEventListener('click', () => {
+      const expanded = desc.classList.toggle('expanded');
+      moreBtn.textContent = expanded ? 'Show less' : 'Show more';
+    });
+    c.appendChild(moreBtn);
+  }
+});
 
    // === CTA buttons (keep only this block) ===
 if (zoomUrl && !isWebinar) {
