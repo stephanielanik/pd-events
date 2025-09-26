@@ -62,11 +62,24 @@
 }
   .strip > article:first-child{ scroll-margin-left: var(--gap); }
 
-  .card{ background:var(--card); border-radius:var(--radius); box-shadow:0 0 0 1px rgba(0,0,0,.07),var(--shadow); position: relative;
-  box-sizing: border-box; min-width: 0; scroll-snap-align: start;}
-  .card:hover,
- .card:focus-within{z-index: 5;               /* lift the active/hovered card above neighbors */
-                    
+ .card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:0 0 0 1px rgba(0,0,0,.07), var(--shadow);
+  position:relative;
+  box-sizing:border-box;
+  min-width:0;
+  scroll-snap-align:start;
+
+  /* add smooth hover */
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.card:hover,
+.card:focus-within{
+  z-index:5; /* keep the lift above neighbors */
+  box-shadow:0 0 0 1px rgba(0,0,0,.10), var(--shadow-md); /* stronger */
+  transform: translateY(-2px); /* subtle lift */
 }
  .presenter{
   font-weight: 600;
@@ -78,7 +91,12 @@
              border-top-left-radius:var(--radius); border-top-right-radius:var(--radius);
              background:#e8eef5; }
   .img-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .content{ display:grid; gap:8px; padding:14px 16px 16px; }
+.content{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:14px 16px 16px;
+}
   .title{ font-weight:800; font-size:1.6rem; line-height:1.15; }
   .meta{ color:var(--muted); font-weight:700; }
   .card .desc{ color:#333; display:-webkit-box; -webkit-box-orient:vertical; min-width: 0; overflow-wrap: anywhere; -webkit-line-clamp:5;
@@ -87,9 +105,12 @@
   .more{ appearance:none; border:0; background:transparent; color:var(--brand);
          font-weight:800; cursor:pointer; margin-top:-4px; width:fit-content; }
 
-  .cta{ display:inline-block; text-decoration:none; text-align:center;
-        margin-top:10px; padding:12px 14px; border-radius:12px;
-        background:var(--brand); color:#fff; font-weight:800; }
+  .cta{
+  display:inline-block; text-decoration:none; text-align:center;
+  margin-top:auto;                    /* <— pushes CTA to the bottom */
+  padding:12px 14px; border-radius:12px;
+  background:var(--brand); color:#fff; font-weight:800;
+}
   .cta:hover{ background:var(--brand-hover); }
   .cta:active{ background:var(--brand-active); }
 
