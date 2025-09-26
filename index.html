@@ -589,11 +589,15 @@ requestAnimationFrame(() => {
     c.insertBefore(moreBtn, ctaWrap);
 
     moreBtn.addEventListener('click', () => {
-      const expanded = c.classList.toggle('desc-scroll');  // makes .desc scrollable
+      const expanded = c.classList.toggle('desc-scroll');  // makes .desc scrollable via CSS
       moreBtn.textContent = expanded ? 'Show less' : 'Show more';
     });
   }
 }); // end rAF
+
+} // <-- END of the for (const ev of events) loop
+
+// Call once, after all cards are in the DOM
 initRailNav();
 
 } // <-- END of renderCards
