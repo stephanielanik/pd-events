@@ -16,6 +16,7 @@
     --shadow-md:0 14px 40px rgba(0,0,0,.12);
     --gap:20px; --nav:48px;
     --rail-pad: calc(var(--nav) + 8px);
+    --card-h: 620px;
   }
 
   body{ margin:0; padding:24px 16px 36px; background:var(--bg); color:var(--text);
@@ -64,15 +65,16 @@ overflow-y: visible;     /* allow the hover-lift to show */
   .strip > article:first-child{ scroll-margin-left: var(--gap); }
 
  .card{
+  height:var(--card-h);
+  display:flex;
+  flex-direction:column;
   background:var(--card);
   border-radius:var(--radius);
-  box-shadow:0 0 0 1px rgba(0,0,0,.07), var(--shadow);
+  box-shadow:0 0 0 1px rgba(0,0,0,.07),var(--shadow);
   position:relative;
   box-sizing:border-box;
   min-width:0;
   scroll-snap-align:start;
-
-  /* add smooth hover */
   transition: box-shadow .2s ease, transform .2s ease;
 }
 
@@ -88,11 +90,18 @@ overflow-y: visible;     /* allow the hover-lift to show */
   margin-top:2px;
   margin-bottom:6px;
 }
-  .img-wrap{ position:relative; aspect-ratio:16/9; overflow:hidden;
-             border-top-left-radius:var(--radius); border-top-right-radius:var(--radius);
-             background:#e8eef5; }
-  .img-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
+ .img-wrap{
+  flex:0 0 auto;
+  aspect-ratio:16/9;
+  overflow:hidden;
+  border-top-left-radius:var(--radius);
+  border-top-right-radius:var(--radius);
+  background:#e8eef5;
+}
+.img-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
 .content{
+  flex:1 1 auto;
+  min-height:0;              /* <- allow children to shrink */
   display:flex;
   flex-direction:column;
   gap:8px;
@@ -100,12 +109,26 @@ overflow-y: visible;     /* allow the hover-lift to show */
 }
   .title{ font-weight:800; font-size:1.6rem; line-height:1.15; }
   .meta{ color:var(--muted); font-weight:700; }
-  .card .desc{ color:#333; display:-webkit-box; -webkit-box-orient:vertical; min-width: 0; overflow-wrap: anywhere; -webkit-line-clamp:5;
-         overflow:hidden; white-space:pre-line; line-height:1.45; }
+ .card .desc{
+  min-height:0;
+  overflow:hidden;           /* clipped until Show more */
+  white-space:pre-line;
+  line-height:1.45;
+}
   .desc.expanded{ -webkit-line-clamp:unset; overflow:visible; max-height:none; }
-  .more{ appearance:none; border:0; background:transparent; color:var(--brand);
-         font-weight:800; cursor:pointer; margin-top:-4px; width:fit-content; }
-
+ .more{
+  appearance:none;
+  border:0;
+  background:transparent;
+  color:var(--brand);
+  font-weight:800;
+  cursor:pointer;
+  width:fit-content;
+  margin-top:4px;
+}
+  .content.desc-scroll .desc{
+  overflow:auto;             /* user can scroll the text */
+}
   .cta{
   display:inline-block; text-decoration:none; text-align:center;
   margin-top:auto;                    /* <— pushes CTA to the bottom */
@@ -114,7 +137,12 @@ overflow-y: visible;     /* allow the hover-lift to show */
 }
   .cta:hover{ background:var(--brand-hover); }
   .cta:active{ background:var(--brand-active); }
-
+.cta-wrap{
+  margin-top:auto;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
   .nav{ position:absolute; top:50%; transform:translateY(-50%); width:var(--nav); height:var(--nav);
         border:0; border-radius:999px; display:grid; place-items:center;
         background:var(--brand); color:#fff; box-shadow:0 6px 18px rgba(0,0,0,.18); cursor:pointer; }
@@ -506,53 +534,78 @@ function renderCards(events){
   pres.textContent = presenter; // shows exactly what's between ** **
   c.appendChild(pres);
 }
-    const desc  = document.createElement('div'); desc.className='desc'; desc.textContent = descBody;
+   // content + meta
+const c = document.createElement('div'); c.className = 'content';
+const title = document.createElement('div'); title.className = 'title';
+title.textContent = ev.summary || 'Untitled event';
 
- // Add text to the card first so it has real size
-c.append(title, meta, desc);
+const meta  = document.createElement('div'); meta.className = 'meta';
+meta.textContent = when + (ev.location ? ` • ${ev.location}` : '');
 
-// Now measure if it's actually clamped/overflowing
-requestAnimationFrame(() => {
-  const overflows = desc.scrollHeight > desc.clientHeight + 1; // tiny fudge
-  if (!overflows) return;
-
-  const moreBtn = document.createElement('button');
-  moreBtn.className = 'more';
-  moreBtn.type = 'button';
-  moreBtn.textContent = 'Show more';
-  moreBtn.addEventListener('click', () => {
-    const expanded = desc.classList.toggle('expanded');
-    moreBtn.textContent = expanded ? 'Show less' : 'Show more';
-  });
-
-  // ⬇️ ensure the button sits ABOVE any CTA(s)
-  const firstCta = c.querySelector('.cta');
-  if (firstCta) {
-    c.insertBefore(moreBtn, firstCta);
-  } else {
-    c.appendChild(moreBtn);
-  }
-});
-
-   // === CTA buttons (keep only this block) ===
-if (zoomUrl && !isWebinar) {
-  makeCta('Join on Zoom', zoomUrl);
-} else if (signup) {
-  makeCta('Sign up', signup);
+if (presenter){
+  const pres = document.createElement('div');
+  pres.className = 'presenter';
+  pres.textContent = presenter;
+  c.appendChild(pres);
 }
 
-function makeCta(label, href) {
+// description
+const desc = document.createElement('div');
+desc.className = 'desc';
+desc.textContent = descBody;
+
+// ---- CTA container + CTAs pinned to bottom ----
+const ctaWrap = document.createElement('div');
+ctaWrap.className = 'cta-wrap';
+
+if (zoomUrl && !isWebinar) makeCta('Join on Zoom', zoomUrl);
+else if (signup)          makeCta('Sign up', signup);
+
+function makeCta(label, href){
   const a = document.createElement('a');
   a.className = 'cta';
-  a.href = href;
-  a.target = '_blank';
-  a.rel = 'noopener';
+  a.href = href; a.target = '_blank'; a.rel = 'noopener';
   a.textContent = label;
-  c.appendChild(a);
+  ctaWrap.appendChild(a);
 }
-    card.append(imgWrap, c);
-    strip.appendChild(card);
+
+// assemble in order
+c.append(title, meta, desc, ctaWrap);
+card.append(imgWrap, c);
+strip.appendChild(card);
+
+// ---- after in DOM: clamp desc by available pixels; add Show more if needed ----
+requestAnimationFrame(() => {
+  const cardH = card.clientHeight;       // fixed by CSS
+  const imgH  = imgWrap.clientHeight;
+  const contentH = cardH - imgH;         // space under the image
+
+  // title + meta + cta + rough gaps between them
+  const nonDescH =
+    title.offsetHeight +
+    meta.offsetHeight  +
+    ctaWrap.offsetHeight +
+    16; // small fudge for vertical gaps
+
+  const descMax = Math.max(80, contentH - nonDescH);  // never less than 80px
+  desc.style.maxHeight = `${descMax}px`;
+
+  if (desc.scrollHeight > descMax + 1){
+    const moreBtn = document.createElement('button');
+    moreBtn.className = 'more';
+    moreBtn.type = 'button';
+    moreBtn.textContent = 'Show more';
+    // place the button above CTAs
+    c.insertBefore(moreBtn, ctaWrap);
+
+    let expanded = false;
+    moreBtn.addEventListener('click', () => {
+      expanded = !expanded;
+      c.classList.toggle('desc-scroll', expanded); // makes desc scrollable
+      moreBtn.textContent = expanded ? 'Show less' : 'Show more';
+    });
   }
+});
 
   initRailNav();
 }
