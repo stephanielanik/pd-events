@@ -525,15 +525,6 @@ function renderCards(events){
     document.addEventListener('click', closeMenus);
     imgWrap.append(addBtn, menu);
 
-    const c = document.createElement('div'); c.className='content';
-    const title = document.createElement('div'); title.className='title'; title.textContent = ev.summary || 'Untitled event';
-    const meta  = document.createElement('div'); meta.className='meta'; meta.textContent = when + (ev.location ? ` • ${ev.location}` : '');
-    if (presenter) {
-  const pres = document.createElement('div');
-  pres.className = 'presenter';
-  pres.textContent = presenter; // shows exactly what's between ** **
-  c.appendChild(pres);
-}
    // content + meta
 const c = document.createElement('div'); c.className = 'content';
 const title = document.createElement('div'); title.className = 'title';
