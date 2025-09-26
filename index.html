@@ -31,21 +31,20 @@
   .tab[aria-selected="true"]{ background:var(--brand); color:#fff; }
 
   .carousel{ position:relative; padding:0 var(--rail-pad); }
-  .strip{
-   display:grid;
-    position: relative;
-    grid-auto-flow:column;
-    grid-auto-columns:minmax(290px, calc((min(1200px, 100%) - (var(--gap)*2)) / 3));
-    gap:var(--gap);
-    overflow-x:auto;
-    scroll-snap-type:x mandatory;
-    padding-left: var(--gap);
-    padding-bottom:12px;
-    scroll-padding-left: var(--gap);
-    padding-right: calc(var(--gap) * .5);
-    scroll-padding-right: calc(var(--gap) * .5)
-     gap: 20px;
-  }
+ .strip{
+  display:grid;
+  position:relative;
+  grid-auto-flow:column;
+  grid-auto-columns:minmax(290px, calc((min(1200px, 100%) - (var(--gap)*2)) / 3));
+  gap:var(--gap);
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  padding-left:var(--gap);
+  padding-bottom:12px;
+  scroll-padding-left:var(--gap);
+  padding-right:calc(var(--gap) * .5);
+  scroll-padding-right:calc(var(--gap) * .5);
+}
   #empty{
   position: absolute;
   inset: 0;                     /* stretch to edges of the strip */
@@ -204,7 +203,7 @@ function fmtRange(startISO, endISO, allDay){
     return same ? `${d1} • ${t1}–${t2}` : `${d1} ${t1} → ${e.toLocaleDateString(undefined, optsD)} ${t2}`;
   }
 }
-ffunction htmlToText(html) {
+function htmlToText(html) {
   const d = document.createElement('div');
   d.innerHTML = html || '';
   d.querySelectorAll('style,script').forEach(el => el.remove());
@@ -229,7 +228,7 @@ function getTagUrl(descHtml, descText, tag) {
     .trim();
 }
 function findZoomLink(descHtml, descText, location) {
-  const tagged = getTaggedUrlFromEither(descHtml, descText, 'ZOOM');
+  const tagged = getTagUrl(descHtml, descText, 'ZOOM');
   if (tagged) return tagged;
   const rx = /https?:\/\/[^\s"'<>]*zoom\.us[^\s"'<>]*/i;
   const candidates = [descHtml || '', descText || '', location || ''];
@@ -240,12 +239,8 @@ function findZoomLink(descHtml, descText, location) {
   }
   return '';
 }
-function sanitizeDesc(descText) {
-  if (!descText) return '';
-  return descText (t || '')
-    .replace(/\s*(BANNER|REGISTER|SIGNUP|ZOOM)\s*:\s*https?:\/\/\S+/gi, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+function sanitizeDesc(descText){
+  return stripTags(descText);
 }
 function getTimes(ev){
   const s = ev.start?.dateTime || (ev.start?.date ? ev.start.date + 'T00:00:00' : null);
@@ -372,7 +367,6 @@ function renderCards(events){
     const { start, end, allDay } = getTimes(ev);
     const when = fmtRange(start, end, allDay);
 
-    const descHtml = ev.description || '';
     const descHtml = ev.description || '';
     const descText = htmlToText(descHtml);
 
