@@ -527,7 +527,7 @@ if (presenter) {
   const pres = document.createElement('div');
   pres.className = 'presenter';
   pres.textContent = presenter;
-  right.appendChild(pres);   // or whatever your right/content container var is
+  body.appendChild(pres);    // <-- append to the agenda body container
 }
     // description (keeps "Format:" if author included it in the body)
     const d=document.createElement('div'); 
@@ -562,11 +562,11 @@ function addAgendaCta(container, label, href){
     menu.className = 'addcal-menu hide';
 
     const payload = {
-      title: ev.summary || 'Untitled event',
-      desc:  descClean,
-      location: ev.location || '',
-      startISO: start, endISO: end, allDay
-    };
+  title: ev.summary || 'Untitled event',
+  desc:  descBody,           // use the presenter-stripped description you already computed
+  location: ev.location || '',
+  startISO: start, endISO: end, allDay
+};
     const aGoogle  = document.createElement('a'); aGoogle.textContent  = 'Google Calendar';
     aGoogle.href   = makeGoogleHref(payload);  aGoogle.target='_blank'; aGoogle.rel='noopener';
 
