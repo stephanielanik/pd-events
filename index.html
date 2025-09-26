@@ -514,15 +514,22 @@ c.append(title, meta, desc);
 // Now measure if it's actually clamped/overflowing
 requestAnimationFrame(() => {
   const overflows = desc.scrollHeight > desc.clientHeight + 1; // tiny fudge
-  if (overflows) {
-    const moreBtn = document.createElement('button');
-    moreBtn.className = 'more';
-    moreBtn.type = 'button';
-    moreBtn.textContent = 'Show more';
-    moreBtn.addEventListener('click', () => {
-      const expanded = desc.classList.toggle('expanded');
-      moreBtn.textContent = expanded ? 'Show less' : 'Show more';
-    });
+  if (!overflows) return;
+
+  const moreBtn = document.createElement('button');
+  moreBtn.className = 'more';
+  moreBtn.type = 'button';
+  moreBtn.textContent = 'Show more';
+  moreBtn.addEventListener('click', () => {
+    const expanded = desc.classList.toggle('expanded');
+    moreBtn.textContent = expanded ? 'Show less' : 'Show more';
+  });
+
+  // ⬇️ ensure the button sits ABOVE any CTA(s)
+  const firstCta = c.querySelector('.cta');
+  if (firstCta) {
+    c.insertBefore(moreBtn, firstCta);
+  } else {
     c.appendChild(moreBtn);
   }
 });
