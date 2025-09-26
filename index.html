@@ -43,7 +43,8 @@
     padding-bottom:12px;
     scroll-padding-left: var(--gap);
     padding-right: calc(var(--gap) * .5);
-    scroll-padding-right: calc(var(--gap) * .5);
+    scroll-padding-right: calc(var(--gap) * .5)
+     gap: 20px;
   }
   #empty{
   position: absolute;
@@ -58,7 +59,12 @@
 }
   .strip > article:first-child{ scroll-margin-left: var(--gap); }
 
-  .card{ background:var(--card); border-radius:var(--radius); box-shadow:0 0 0 1px rgba(0,0,0,.07),var(--shadow); }
+  .card{ background:var(--card); border-radius:var(--radius); box-shadow:0 0 0 1px rgba(0,0,0,.07),var(--shadow); position: relative;
+  box-sizing: border-box; min-width: 0;}
+  .card:hover,
+ .card:focus-within{z-index: 5;               /* lift the active/hovered card above neighbors */
+}
+ 
   .img-wrap{ position:relative; aspect-ratio:16/9; overflow:hidden;
              border-top-left-radius:var(--radius); border-top-right-radius:var(--radius);
              background:#e8eef5; }
@@ -66,7 +72,7 @@
   .content{ display:grid; gap:8px; padding:14px 16px 16px; }
   .title{ font-weight:800; font-size:1.6rem; line-height:1.15; }
   .meta{ color:var(--muted); font-weight:700; }
-  .card .desc{ color:#333; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:5;
+  .card .desc{ color:#333; display:-webkit-box; -webkit-box-orient:vertical; min-width: 0; overflow-wrap: anywhere; -webkit-line-clamp:5;
          overflow:hidden; white-space:pre-line; line-height:1.45; }
   .desc.expanded{ -webkit-line-clamp:unset; overflow:visible; max-height:none; }
   .more{ appearance:none; border:0; background:transparent; color:var(--brand);
@@ -131,7 +137,7 @@
 
   <div class="widget-shell">
     <div class="rail-margins">
-      <h1>Upcoming AIT PD Opportunities</h1>
+      <h1>Upcoming Events</h1>
       <div class="tabs" role="tablist" aria-label="View">
         <button id="tabCards"  class="tab" role="tab" aria-selected="true"  aria-controls="panelCards">Cards</button>
         <button id="tabAgenda" class="tab" role="tab" aria-selected="false" aria-controls="panelAgenda">Agenda</button>
