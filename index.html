@@ -271,7 +271,35 @@ function getTimes(ev){
   const allDay = !!ev.start?.date && !!ev.end?.date;
   return { start:s, end:e, allDay };
 }
+function sameYMD(a,b){
+  return a.getFullYear()===b.getFullYear()
+      && a.getMonth()===b.getMonth()
+      && a.getDate()===b.getDate();
+}
+function fmtDate(d){
+  return d.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
+}
+function fmtTime(d){
+  return d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' });
+}
 
+function fmtRange(startISO, endISO, allDay){
+  const s = new Date(startISO);
+  let e = new Date(endISO);
+
+  if (allDay){
+    // Google/Outlook use exclusive end date for all-day; back up by 1s
+    if (e.getHours()===0 && e.getMinutes()===0 && e.getSeconds()===0){
+      e = new Date(e.getTime() - 1000);
+    }
+    return sameYMD(s,e) ? fmtDate(s) : `${fmtDate(s)} – ${fmtDate(e)}`;
+  }
+
+  if (sameYMD(s,e)){
+    return `${fmtDate(s)} · ${fmtTime(s)}–${fmtTime(e)}`;
+  }
+  return `${fmtDate(s)} ${fmtTime(s)} – ${fmtDate(e)} ${fmtTime(e)}`;
+}
 /* === Add-to-calendar helpers === */
 function pad(n){ return String(n).padStart(2,'0'); }
 function toICSDate(iso){
