@@ -196,7 +196,7 @@ overflow-y: visible;     /* allow the hover-lift to show */
 
   <div class="widget-shell">
     <div class="rail-margins">
-      <h1>Upcoming Events 1</h1>
+      <h1>Upcoming Events</h1>
       <div class="tabs" role="tablist" aria-label="View">
         <button id="tabCards"  class="tab" role="tab" aria-selected="true"  aria-controls="panelCards">Cards</button>
         <button id="tabAgenda" class="tab" role="tab" aria-selected="false" aria-controls="panelAgenda">Agenda</button>
@@ -280,10 +280,10 @@ function getTagUrl(descHtml, descText, tag) {
   return tm ? tm[1] : '';
 }
 // Remove helper lines like BANNER:/SIGNUP:/ZOOM:/REGISTER: (HTML or plain text),
-// even if there are multiple blank lines between the TAG and its URL.
+// and also drop URL-only lines to helper hosts even if the tag line went missing.
 function stripTags(input){
   if (!input) return '';
-  // normalize CRLF and NBSP
+  // normalize CR/LF and NBSP
   let s = String(input).replace(/\r\n?/g, '\n').replace(/\u00A0/g, ' ');
 
   const lines = s.split('\n');
@@ -292,28 +292,31 @@ function stripTags(input){
   const tagOnlyRe     = /^\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*$/i;
   const tagSameLineRe = /^\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*https?:\/\/\S+\s*$/i;
   const urlOnlyRe     = /^\s*https?:\/\/\S+\s*$/i;
+  const helperHosts   = /(postimg\.(?:cc|org)|bridgeapp\.com|zoom\.us)/i;
 
-  let dropNextUrl = false; // we just saw a tag-only line; skip blanks until the URL and drop it
+  let dropNextUrl = false; // after seeing "TAG:" skip blanks and then drop the next URL-only line
 
   for (let line of lines){
-    // Remove any inline "... TAG: https://…" that appears inside a normal text line
+    // Remove any inline "... TAG: https://…" inside a normal text line
     line = line.replace(/\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*https?:\/\/\S+/gi, '');
 
     // Whole line "TAG: https://…"
     if (tagSameLineRe.test(line)) continue;
 
-    // "TAG:" alone → enable drop mode and keep skipping until we hit the next URL line
+    // "TAG:" alone → enable drop mode
     if (tagOnlyRe.test(line)){ dropNextUrl = true; continue; }
 
     if (dropNextUrl){
-      if (line.trim() === '') continue;      // skip any number of blank lines
-      if (urlOnlyRe.test(line)){              // drop the URL that belongs to the tag
+      if (line.trim() === '') continue;         // skip any number of blank lines
+      if (urlOnlyRe.test(line)){                // drop the URL that belongs to the tag
         dropNextUrl = false;
         continue;
       }
-      // Reached a non-empty, non-URL line → stop drop mode and keep this line
-      dropNextUrl = false;
+      dropNextUrl = false;                      // real content resumes
     }
+
+    // Also drop helper URL-only lines even if the label was lost
+    if (urlOnlyRe.test(line) && helperHosts.test(line)) continue;
 
     out.push(line);
   }
