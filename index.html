@@ -281,12 +281,28 @@ function getTagUrl(descHtml, descText, tag) {
 }
 function stripTags(text){
   if (!text) return '';
-  return text
-    // drop any full line that starts with these keys
-    .replace(/^\s*(BANNER|REGISTER|SIGNUP|ZOOM)\s*:\s*.*$/gim, '')
-    // collapse 3+ newlines
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+  const lines = String(text).replace(/\u00A0/g, ' ').split(/\r?\n/);
+  const out = [];
+  let skipNext = false;
+
+  for (let i = 0; i < lines.length; i++){
+    if (skipNext){ skipNext = false; continue; }
+
+    const ln = lines[i].trim();
+    const m = ln.match(/^(BANNER|REGISTER|SIGNUP|ZOOM)\s*:\s*(.*)$/i);
+    if (m){
+      const after = (m[2] || '').trim();
+      // if the URL is on the next line, drop that too
+      if (!after || /^https?:\/\//i.test(after)){
+        if (i+1 < lines.length && /^https?:\/\//i.test(lines[i+1].trim())) skipNext = true;
+      }
+      continue; // drop the label line
+    }
+
+    out.push(lines[i]);
+  }
+
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 // If the first non-empty line starts with **Presenter**, pull it out.
 // Accepts "**Name**", "**Name**:", or "**Name** — rest of line".
