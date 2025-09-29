@@ -496,23 +496,26 @@ function renderCards(events){
   // There are events: hide overlay + enable arrows
   setCardsEmptyState(false);
 
-  for (const ev of events){
-    const { start, end, allDay } = getTimes(ev);
-    const when = fmtRange(start, end, allDay);
+ for (const ev of events){
+  const { start, end, allDay } = getTimes(ev);
+  const when = fmtRange(start, end, allDay);
 
-    const descHtml = ev.description || '';
-    const descText = htmlToText(descHtml);
+  const descHtml = ev.description || '';
+  const descText = htmlToText(descHtml);
 
-   const banner   = getTagUrl(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
-const zoomUrl  = getTagUrl(descHtml, descText, 'ZOOM');
-const isWebinar = /zoom\.us\/webinar\//i.test(zoomUrl);
-const signup   = getTagUrl(descHtml, descText, 'SIGNUP') || (isWebinar ? zoomUrl : '');
-    const descClean = stripTags(descText);
-    const { presenter, body: descBody } = extractPresenter(stripTags(descText));
-    const zoom     = findZoomLink(descHtml, descText, ev.location);
-    const baseText = stripTags(descText);
-const { presenter, body: descBody } = extractPresenter(baseText);
-    const descClean = baseText;
+  // --- tags / links pulled from the description ---
+  const banner   = getTagUrl(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
+  const zoomUrl  = getTagUrl(descHtml, descText, 'ZOOM');
+  const isWebinar = /zoom\.us\/webinar\//i.test(zoomUrl);
+  const signup   = getTagUrl(descHtml, descText, 'SIGNUP') || (isWebinar ? zoomUrl : '');
+
+  // --- make a single cleaned text and extract presenter from it ---
+  const baseText = stripTags(descText);
+  const { presenter, body: descBody } = extractPresenter(baseText);
+  const descClean = baseText;
+
+  // (optional deep link if someone hid a Zoom url elsewhere)
+  const zoom = findZoomLink(descHtml, descText, ev.location);
 
     const card = document.createElement('article');
     card.className = 'card'; card.setAttribute('role','listitem');
