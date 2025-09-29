@@ -164,8 +164,18 @@ overflow-y: visible;     /* allow the hover-lift to show */
   .row h3{ margin:0; font-size:1.35rem; }
   .row .when{ color:var(--muted); font-weight:700; margin:4px 0 2px; }
   .row .where{ margin:2px 0; }
-  .row .desc{ margin-top:8px; display:block; white-space:pre-line; overflow:visible; -webkit-line-clamp:unset; -webkit-box-orient:unset; }
-  .agenda .cta{ padding:6px 10px; border-radius:8px; font-size:.9rem; }
+  .row .desc{
+  margin-top:8px;
+  margin-bottom:14px;          /* add space below the description */
+  display:block; white-space:pre-line;
+  overflow:visible; -webkit-line-clamp:unset; -webkit-box-orient:unset;
+}
+
+.agenda .cta{
+  padding:6px 10px; border-radius:8px; font-size:.9rem;
+  /* optional extra cushion from text (keeps spacing even if no desc present) */
+  margin-top:8px;
+}
 
   .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
   [hidden]{ display:none !important; }
@@ -196,7 +206,7 @@ overflow-y: visible;     /* allow the hover-lift to show */
 
   <div class="widget-shell">
     <div class="rail-margins">
-      <h1>Upcoming Events 1</h1>
+      <h1>Upcoming Events</h1>
       <div class="tabs" role="tablist" aria-label="View">
         <button id="tabCards"  class="tab" role="tab" aria-selected="true"  aria-controls="panelCards">Cards</button>
         <button id="tabAgenda" class="tab" role="tab" aria-selected="false" aria-controls="panelAgenda">Agenda</button>
