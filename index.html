@@ -279,26 +279,60 @@ function getTagUrl(descHtml, descText, tag) {
   const tm = (descText || '').match(new RegExp(tag + '\\s*:\\s*(https?:\\/\\/\\S+)', 'i'));
   return tm ? tm[1] : '';
 }
+// Robust cleaner for BANNER:/SIGNUP:/ZOOM:/REGISTER: helper lines
 function stripTags(input){
   if (!input) return '';
-  // normalize newlines and NBSP
+  // normalize CRLF and NBSP
   let s = String(input).replace(/\r\n?/g, '\n').replace(/\u00a0/g, ' ');
 
-  // 1) Remove whole lines like "BANNER: ..." / "SIGNUP: ..." / "ZOOM: ..."
-  //    URL may be on the same line or on the next line.
-  s = s.replace(
-    /(?:^|\n)[^\S\n]*(?:BANNER|SIGNUP|ZOOM|REGISTER)[^\S\n]*:[^\S\n]*(?:https?:\/\/\S+)?[^\S\n]*(?:\n|$)/gi,
-    '\n'
-  );
+  const lines = s.split('\n');
+  const out = [];
 
-  // 2) Also remove inline forms (author forgot a newline): "...BANNER: https://…"
-  s = s.replace(
-    /(?:BANNER|SIGNUP|ZOOM|REGISTER)[^\S\n]*:[^\S\n]*https?:\/\/\S+/gi,
-    ''
-  );
+  const tagOnlyRe      = /^\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*$/i;
+  const tagSameLineRe  = /^\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*https?:\/\/\S+\s*$/i;
+  const urlOnlyRe      = /^\s*https?:\/\/\S+\s*$/i;
 
-  // tidy blank lines
-  s = s.replace(/\n{3,}/g, '\n\n').trim();
+  let removeNextUrl = false;     // we just saw a tag-only line
+  let blanksAllowed = 0;         // permit one blank spacer before the URL
+
+  for (let line of lines){
+    // Whole line "TAG: https://…"
+    if (tagSameLineRe.test(line)) { 
+      removeNextUrl = false;
+      blanksAllowed = 0;
+      continue; 
+    }
+    // "TAG:" alone; drop it and prepare to drop the following URL line
+    if (tagOnlyRe.test(line)){
+      removeNextUrl = true;
+      blanksAllowed = 1;         // allow one empty line before the URL
+      continue;
+    }
+
+    if (removeNextUrl){
+      if (line.trim() === '' && blanksAllowed > 0){
+        blanksAllowed--;
+        continue;                // skip the blank spacer
+      }
+      if (urlOnlyRe.test(line)){
+        // drop the URL line that belongs to the tag
+        removeNextUrl = false;
+        blanksAllowed = 0;
+        continue;
+      }
+      // anything else ends the removal state; fall through to keep the line
+      removeNextUrl = false;
+      blanksAllowed = 0;
+    }
+
+    // also remove any inline "... TAG: https://…"
+    line = line.replace(/\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*https?:\/\/\S+/gi, '');
+    out.push(line);
+  }
+
+  s = out.join('\n')
+         .replace(/\n{3,}/g, '\n\n')  // compress tall gaps
+         .trim();
   return s;
 }
   // If the first non-empty line starts with **Presenter**, pull it out.
