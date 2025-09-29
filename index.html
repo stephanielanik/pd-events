@@ -196,7 +196,7 @@ overflow-y: visible;     /* allow the hover-lift to show */
 
   <div class="widget-shell">
     <div class="rail-margins">
-      <h1>Upcoming Events</h1>
+      <h1>Upcoming Events 1</h1>
       <div class="tabs" role="tablist" aria-label="View">
         <button id="tabCards"  class="tab" role="tab" aria-selected="true"  aria-controls="panelCards">Cards</button>
         <button id="tabAgenda" class="tab" role="tab" aria-selected="false" aria-controls="panelAgenda">Agenda</button>
@@ -534,7 +534,6 @@ function renderCards(events){
 
   const descHtml = ev.description || '';
   const descText = htmlToText(descHtml);
-   const cleaned  = stripTags(descText);  
 
   // --- tags / links pulled from the description ---
   const banner   = getTagUrl(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
@@ -542,10 +541,9 @@ function renderCards(events){
   const isWebinar = /zoom\.us\/webinar\//i.test(zoomUrl);
   const signup   = getTagUrl(descHtml, descText, 'SIGNUP') || (isWebinar ? zoomUrl : '');
 
-  // --- make a single cleaned text and extract presenter from it ---
-  const baseText = stripTags(descText);
-  const { presenter, body: descBody } = extractPresenter(cleaned);
-  const descClean = baseText;
+ const descClean = stripTags(descText);                 // removes BANNER/SIGNUP/ZOOM/REGISTER lines+URLs
+const { presenter, body: descBody } = extractPresenter(descClean); 
+
 
   // (optional deep link if someone hid a Zoom url elsewhere)
   const zoom = findZoomLink(descHtml, descText, ev.location);
@@ -568,9 +566,9 @@ function renderCards(events){
 
     const menu = document.createElement('div');
     menu.className = 'addcal-menu hide';
-    const payload = {
+   const payload = {
   title: ev.summary || 'Untitled event',
-  desc:  descClean,                 // <— cleaned text
+  desc:  descBody,                   // <- cleaned, with presenter removed
   location: ev.location || '',
   startISO: start, endISO: end, allDay
 };
@@ -678,13 +676,13 @@ function renderAgenda(events){
     const when = fmtRange(start, end, allDay);
 
     const descHtml = ev.description || '';
-    const descText = htmlToText(descHtml);
-    const cleaned  = stripTags(descText); 
+    const descText = htmlToText(descHtml);; 
     const banner    = getTagUrl(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
 const zoomUrl   = getTagUrl(descHtml, descText, 'ZOOM');
 const isWebinar = /zoom\.us\/webinar\//i.test(zoomUrl);
 const signup    = getTagUrl(descHtml, descText, 'SIGNUP') || (isWebinar ? zoomUrl : '');
-const { presenter, body: descBody } = extractPresenter(cleaned);
+    const descClean = stripTags(descText);    
+const { presenter, body: descBody } = extractPresenter(descClean);
 
 
     const row = document.createElement('article'); 
