@@ -279,11 +279,12 @@ function getTagUrl(descHtml, descText, tag) {
   const tm = (descText || '').match(new RegExp(tag + '\\s*:\\s*(https?:\\/\\/\\S+)', 'i'));
   return tm ? tm[1] : '';
 }
- function stripTags(descText){
-  return (descText || '')
-    .replace(/\u00A0/g, ' ')
-    .replace(/\s*(BANNER|SIGNUP|REGISTER|ZOOM)\s*:\s*https?:\/\/\S+/gi, '')
-    .replace(/\s*(BANNER|SIGNUP|REGISTER|ZOOM)\s*:\s*<a[^>]+href="[^"]+"[^>]*>[^<]*<\/a>/gi, '')
+function stripTags(text){
+  if (!text) return '';
+  return text
+    // drop any full line that starts with these keys
+    .replace(/^\s*(BANNER|REGISTER|SIGNUP|ZOOM)\s*:\s*.*$/gim, '')
+    // collapse 3+ newlines
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
@@ -502,13 +503,16 @@ function renderCards(events){
     const descHtml = ev.description || '';
     const descText = htmlToText(descHtml);
 
-    const banner  = getTagUrl(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
-    const zoomUrl = getTagUrl(descHtml, descText, 'ZOOM');
-    const isWebinar = /zoom\.us\/webinar\//i.test(zoomUrl);
-    const signup = getTagUrl(descHtml, descText, 'SIGNUP') || (isWebinar ? zoomUrl : '');
+   const banner   = getTagUrl(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
+const zoomUrl  = getTagUrl(descHtml, descText, 'ZOOM');
+const isWebinar = /zoom\.us\/webinar\//i.test(zoomUrl);
+const signup   = getTagUrl(descHtml, descText, 'SIGNUP') || (isWebinar ? zoomUrl : '');
     const descClean = stripTags(descText);
     const { presenter, body: descBody } = extractPresenter(stripTags(descText));
     const zoom     = findZoomLink(descHtml, descText, ev.location);
+    const baseText = stripTags(descText);
+const { presenter, body: descBody } = extractPresenter(baseText);
+    const descClean = baseText;
 
     const card = document.createElement('article');
     card.className = 'card'; card.setAttribute('role','listitem');
@@ -529,11 +533,11 @@ function renderCards(events){
     const menu = document.createElement('div');
     menu.className = 'addcal-menu hide';
     const payload = {
-      title: ev.summary || 'Untitled event',
-      desc:  descClean,
-      location: ev.location || '',
-      startISO: start, endISO: end, allDay
-    };
+  title: ev.summary || 'Untitled event',
+  desc:  descClean,                 // <— cleaned text
+  location: ev.location || '',
+  startISO: start, endISO: end, allDay
+};
     const aGoogle  = document.createElement('a'); aGoogle.textContent  = 'Google Calendar';
     aGoogle.href   = makeGoogleHref(payload);  aGoogle.target='_blank'; aGoogle.rel='noopener';
 
