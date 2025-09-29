@@ -279,23 +279,27 @@ function getTagUrl(descHtml, descText, tag) {
   const tm = (descText || '').match(new RegExp(tag + '\\s*:\\s*(https?:\\/\\/\\S+)', 'i'));
   return tm ? tm[1] : '';
 }
-function stripTags(raw){
-  if (!raw) return '';
-  let t = String(raw).replace(/\u00A0/g, ' ');
+function stripTags(input){
+  if (!input) return '';
+  // normalize newlines and NBSP
+  let s = String(input).replace(/\r\n?/g, '\n').replace(/\u00a0/g, ' ');
 
-  // 1) Remove TAG: <url> anywhere (inline or its own line)
-  t = t.replace(/(?:^|\s)(?:BANNER|REGISTER|SIGNUP|ZOOM)\s*:\s*https?:\/\/\S+/gi, '');
+  // 1) Remove whole lines like "BANNER: ..." / "SIGNUP: ..." / "ZOOM: ..."
+  //    URL may be on the same line or on the next line.
+  s = s.replace(
+    /(?:^|\n)[^\S\n]*(?:BANNER|SIGNUP|ZOOM|REGISTER)[^\S\n]*:[^\S\n]*(?:https?:\/\/\S+)?[^\S\n]*(?:\n|$)/gi,
+    '\n'
+  );
 
-  // 2) Remove TAG: <non-url text> (e.g., when anchor text was "Sign up")
-  t = t.replace(/(?:^|\s)(?:BANNER|REGISTER|SIGNUP|ZOOM)\s*:\s*[^\n]+/gi, '');
+  // 2) Also remove inline forms (author forgot a newline): "...BANNER: https://…"
+  s = s.replace(
+    /(?:BANNER|SIGNUP|ZOOM|REGISTER)[^\S\n]*:[^\S\n]*https?:\/\/\S+/gi,
+    ''
+  );
 
-  // 3) Handle "TAG:" line followed by URL on the next line
-  t = t.replace(/^\s*(?:BANNER|REGISTER|SIGNUP|ZOOM)\s*:\s*\n\s*https?:\/\/\S+\s*$/gmi, '');
-
-  // 4) Tidy spacing
-  t = t.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n');
-
-  return t.trim();
+  // tidy blank lines
+  s = s.replace(/\n{3,}/g, '\n\n').trim();
+  return s;
 }
   // If the first non-empty line starts with **Presenter**, pull it out.
 // Accepts "**Name**", "**Name**:", or "**Name** — rest of line".
@@ -511,6 +515,7 @@ function renderCards(events){
 
   const descHtml = ev.description || '';
   const descText = htmlToText(descHtml);
+   const cleaned  = stripTags(descText);  
 
   // --- tags / links pulled from the description ---
   const banner   = getTagUrl(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
@@ -520,7 +525,7 @@ function renderCards(events){
 
   // --- make a single cleaned text and extract presenter from it ---
   const baseText = stripTags(descText);
-  const { presenter, body: descBody } = extractPresenter(baseText);
+  const { presenter, body: descBody } = extractPresenter(cleaned);
   const descClean = baseText;
 
   // (optional deep link if someone hid a Zoom url elsewhere)
@@ -655,11 +660,13 @@ function renderAgenda(events){
 
     const descHtml = ev.description || '';
     const descText = htmlToText(descHtml);
+    const cleaned  = stripTags(descText); 
     const banner    = getTagUrl(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
 const zoomUrl   = getTagUrl(descHtml, descText, 'ZOOM');
 const isWebinar = /zoom\.us\/webinar\//i.test(zoomUrl);
 const signup    = getTagUrl(descHtml, descText, 'SIGNUP') || (isWebinar ? zoomUrl : '');
-const { presenter, body: descBody } = extractPresenter(stripTags(descText));
+const { presenter, body: descBody } = extractPresenter(cleaned);
+
 
     const row = document.createElement('article'); 
     row.className='row';
