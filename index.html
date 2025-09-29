@@ -196,7 +196,7 @@ overflow-y: visible;     /* allow the hover-lift to show */
 
   <div class="widget-shell">
     <div class="rail-margins">
-      <h1>Upcoming Events</h1>
+      <h1>Upcoming Events 1</h1>
       <div class="tabs" role="tablist" aria-label="View">
         <button id="tabCards"  class="tab" role="tab" aria-selected="true"  aria-controls="panelCards">Cards</button>
         <button id="tabAgenda" class="tab" role="tab" aria-selected="false" aria-controls="panelAgenda">Agenda</button>
@@ -279,51 +279,53 @@ function getTagUrl(descHtml, descText, tag) {
   const tm = (descText || '').match(new RegExp(tag + '\\s*:\\s*(https?:\\/\\/\\S+)', 'i'));
   return tm ? tm[1] : '';
 }
-// Remove helper lines like BANNER:/SIGNUP:/ZOOM:/REGISTER: (HTML or plain text),
-// and also drop URL-only lines to helper hosts even if the tag line went missing.
+// Remove helper lines and helper-host URLs from plain text
 function stripTags(input){
   if (!input) return '';
-  // normalize CR/LF and NBSP
-  let s = String(input).replace(/\r\n?/g, '\n').replace(/\u00A0/g, ' ');
+  let s = String(input)
+    .replace(/\r\n?/g, '\n')     // normalize line breaks
+    .replace(/\u00A0/g, ' ');    // nbsp → space
+
+  // Remove any inline "... TAG: https://…" that sits inside a text line
+  s = s.replace(/\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*https?:\/\/\S+/gi, '');
 
   const lines = s.split('\n');
-  const out = [];
-
+  const out   = [];
   const tagOnlyRe     = /^\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*$/i;
-  const tagSameLineRe = /^\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*https?:\/\/\S+\s*$/i;
   const urlOnlyRe     = /^\s*https?:\/\/\S+\s*$/i;
   const helperHosts   = /(postimg\.(?:cc|org)|bridgeapp\.com|zoom\.us)/i;
 
-  let dropNextUrl = false; // after seeing "TAG:" skip blanks and then drop the next URL-only line
+  let dropNextUrl = false; // after "TAG:" drop the next URL-only line
 
   for (let line of lines){
-    // Remove any inline "... TAG: https://…" inside a normal text line
-    line = line.replace(/\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*https?:\/\/\S+/gi, '');
+    const trimmed = line.trim();
 
-    // Whole line "TAG: https://…"
-    if (tagSameLineRe.test(line)) continue;
-
-    // "TAG:" alone → enable drop mode
-    if (tagOnlyRe.test(line)){ dropNextUrl = true; continue; }
+    // whole line "TAG:" → skip and drop the next URL-only line
+    if (tagOnlyRe.test(trimmed)){ dropNextUrl = true; continue; }
 
     if (dropNextUrl){
-      if (line.trim() === '') continue;         // skip any number of blank lines
-      if (urlOnlyRe.test(line)){                // drop the URL that belongs to the tag
+      if (!trimmed) continue;                  // skip blank(s) after TAG:
+      if (urlOnlyRe.test(trimmed)){            // drop the URL that belongs to the tag
         dropNextUrl = false;
         continue;
       }
-      dropNextUrl = false;                      // real content resumes
+      dropNextUrl = false;                     // real content resumed
     }
 
-    // Also drop helper URL-only lines even if the label was lost
-    if (urlOnlyRe.test(line) && helperHosts.test(line)) continue;
+    // Drop helper URL-only lines (even if TAG: got lost)
+    if (urlOnlyRe.test(trimmed) && helperHosts.test(trimmed)) continue;
 
     out.push(line);
   }
 
-  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
-}
-  // If the first non-empty line starts with **Presenter**, pull it out.
+  s = out.join('\n');
+
+  // Final sweep: remove any remaining helper-host URLs that appear inline
+  s = s.replace(/https?:\/\/\S*(postimg\.(?:cc|org)|bridgeapp\.com|zoom\.us)\S*/gi, '');
+
+  // Tidy whitespace
+  return s.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+}  // If the first non-empty line starts with **Presenter**, pull it out.
 // Accepts "**Name**", "**Name**:", or "**Name** — rest of line".
 function extractPresenter(text){
   const t = (text || '').replace(/\u00A0/g, ' ').replace(/\r/g, '');
@@ -537,16 +539,13 @@ function renderCards(events){
 
   const descHtml = ev.description || '';
   const descText = htmlToText(descHtml);
-
+const descClean = stripTags(descText);                 // removes BANNER/SIGNUP/ZOOM/REGISTER lines+URLs
+const { presenter, body: descBody } = extractPresenter(descClean); 
   // --- tags / links pulled from the description ---
   const banner   = getTagUrl(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
   const zoomUrl  = getTagUrl(descHtml, descText, 'ZOOM');
   const isWebinar = /zoom\.us\/webinar\//i.test(zoomUrl);
   const signup   = getTagUrl(descHtml, descText, 'SIGNUP') || (isWebinar ? zoomUrl : '');
-
- const descClean = stripTags(descText);                 // removes BANNER/SIGNUP/ZOOM/REGISTER lines+URLs
-const { presenter, body: descBody } = extractPresenter(descClean); 
-
 
   // (optional deep link if someone hid a Zoom url elsewhere)
   const zoom = findZoomLink(descHtml, descText, ev.location);
@@ -680,14 +679,13 @@ function renderAgenda(events){
 
     const descHtml = ev.description || '';
     const descText = htmlToText(descHtml);; 
+    const descClean = stripTags(descText);    
+const { presenter, body: descBody } = extractPresenter(descClean);
     const banner    = getTagUrl(descHtml, descText, 'BANNER') || FALLBACK_IMAGE;
 const zoomUrl   = getTagUrl(descHtml, descText, 'ZOOM');
 const isWebinar = /zoom\.us\/webinar\//i.test(zoomUrl);
 const signup    = getTagUrl(descHtml, descText, 'SIGNUP') || (isWebinar ? zoomUrl : '');
-    const descClean = stripTags(descText);    
-const { presenter, body: descBody } = extractPresenter(descClean);
-
-
+ 
     const row = document.createElement('article'); 
     row.className='row';
 
