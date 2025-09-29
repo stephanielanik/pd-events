@@ -196,7 +196,7 @@ overflow-y: visible;     /* allow the hover-lift to show */
 
   <div class="widget-shell">
     <div class="rail-margins">
-      <h1>Upcoming Events 1</h1>
+      <h1>Upcoming Events</h1>
       <div class="tabs" role="tablist" aria-label="View">
         <button id="tabCards"  class="tab" role="tab" aria-selected="true"  aria-controls="panelCards">Cards</button>
         <button id="tabAgenda" class="tab" role="tab" aria-selected="false" aria-controls="panelAgenda">Agenda</button>
@@ -279,61 +279,46 @@ function getTagUrl(descHtml, descText, tag) {
   const tm = (descText || '').match(new RegExp(tag + '\\s*:\\s*(https?:\\/\\/\\S+)', 'i'));
   return tm ? tm[1] : '';
 }
-// Robust cleaner for BANNER:/SIGNUP:/ZOOM:/REGISTER: helper lines
+// Remove helper lines like BANNER:/SIGNUP:/ZOOM:/REGISTER: (HTML or plain text),
+// even if there are multiple blank lines between the TAG and its URL.
 function stripTags(input){
   if (!input) return '';
   // normalize CRLF and NBSP
-  let s = String(input).replace(/\r\n?/g, '\n').replace(/\u00a0/g, ' ');
+  let s = String(input).replace(/\r\n?/g, '\n').replace(/\u00A0/g, ' ');
 
   const lines = s.split('\n');
   const out = [];
 
-  const tagOnlyRe      = /^\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*$/i;
-  const tagSameLineRe  = /^\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*https?:\/\/\S+\s*$/i;
-  const urlOnlyRe      = /^\s*https?:\/\/\S+\s*$/i;
+  const tagOnlyRe     = /^\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*$/i;
+  const tagSameLineRe = /^\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*https?:\/\/\S+\s*$/i;
+  const urlOnlyRe     = /^\s*https?:\/\/\S+\s*$/i;
 
-  let removeNextUrl = false;     // we just saw a tag-only line
-  let blanksAllowed = 0;         // permit one blank spacer before the URL
+  let dropNextUrl = false; // we just saw a tag-only line; skip blanks until the URL and drop it
 
   for (let line of lines){
-    // Whole line "TAG: https://…"
-    if (tagSameLineRe.test(line)) { 
-      removeNextUrl = false;
-      blanksAllowed = 0;
-      continue; 
-    }
-    // "TAG:" alone; drop it and prepare to drop the following URL line
-    if (tagOnlyRe.test(line)){
-      removeNextUrl = true;
-      blanksAllowed = 1;         // allow one empty line before the URL
-      continue;
-    }
+    // Remove any inline "... TAG: https://…" that appears inside a normal text line
+    line = line.replace(/\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*https?:\/\/\S+/gi, '');
 
-    if (removeNextUrl){
-      if (line.trim() === '' && blanksAllowed > 0){
-        blanksAllowed--;
-        continue;                // skip the blank spacer
-      }
-      if (urlOnlyRe.test(line)){
-        // drop the URL line that belongs to the tag
-        removeNextUrl = false;
-        blanksAllowed = 0;
+    // Whole line "TAG: https://…"
+    if (tagSameLineRe.test(line)) continue;
+
+    // "TAG:" alone → enable drop mode and keep skipping until we hit the next URL line
+    if (tagOnlyRe.test(line)){ dropNextUrl = true; continue; }
+
+    if (dropNextUrl){
+      if (line.trim() === '') continue;      // skip any number of blank lines
+      if (urlOnlyRe.test(line)){              // drop the URL that belongs to the tag
+        dropNextUrl = false;
         continue;
       }
-      // anything else ends the removal state; fall through to keep the line
-      removeNextUrl = false;
-      blanksAllowed = 0;
+      // Reached a non-empty, non-URL line → stop drop mode and keep this line
+      dropNextUrl = false;
     }
 
-    // also remove any inline "... TAG: https://…"
-    line = line.replace(/\s*(?:BANNER|SIGNUP|ZOOM|REGISTER)\s*:\s*https?:\/\/\S+/gi, '');
     out.push(line);
   }
 
-  s = out.join('\n')
-         .replace(/\n{3,}/g, '\n\n')  // compress tall gaps
-         .trim();
-  return s;
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
   // If the first non-empty line starts with **Presenter**, pull it out.
 // Accepts "**Name**", "**Name**:", or "**Name** — rest of line".
