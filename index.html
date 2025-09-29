@@ -287,23 +287,49 @@ function getTagUrl(descHtml, descText, tag) {
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
-  // If the first non-empty line is **something**, pull it out as "presenter"
+// If the first non-empty line starts with **Presenter**, pull it out.
+// Accepts "**Name**", "**Name**:", or "**Name** — rest of line".
 function extractPresenter(text){
-  if(!text) return { presenter:'', body:'' };
-  const lines = text.split(/\r?\n/);
-  // find first non-empty line index
-  let i = 0;
-  while(i < lines.length && !lines[i].trim()) i++;
-  if(i >= lines.length) return { presenter:'', body: text.trim() };
+  const t = (text || '').replace(/\u00A0/g, ' ').replace(/\r/g, '');
+  if (!t.trim()) return { presenter:'', body:'' };
 
-  const m = lines[i].trim().match(/^\*\*(.+?)\*\*$/);
-  if(m){
+  const lines = t.split('\n');
+  // find first non-empty line
+  let i = 0;
+  while (i < lines.length && !lines[i].trim()) i++;
+  if (i >= lines.length) return { presenter:'', body: t.trim() };
+
+  const line = lines[i].trim();
+
+  // Full-line form: **Name** optionally followed by ":" or dash and optional rest
+  let m = line.match(/^\*\*\s*([^*]+?)\s*\*\*(?:\s*[:\-–—]\s*(.*))?$/);
+  if (m){
     const presenter = m[1].trim();
-    // remove that line and return the rest
-    const rest = [...lines.slice(0,i), ...lines.slice(i+1)].join('\n').replace(/\n{3,}/g, '\n\n').trim();
-    return { presenter, body: rest };
+    const after = (m[2] || '').trim();
+    if (after){
+      // keep anything after the **Name** on that same line as the new first line
+      lines[i] = after;
+    } else {
+      // otherwise drop the line entirely
+      lines.splice(i, 1);
+    }
+    const body = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    return { presenter, body };
   }
-  return { presenter:'', body: text.trim() };
+
+  // Fallback: if the first line merely starts with **Name** … strip that token
+  m = line.match(/^\*\*\s*([^*]+?)\s*\*\*/);
+  if (m){
+    const presenter = m[1].trim();
+    lines[i] = line
+      .replace(m[0], '')         // remove the **Name** chunk
+      .replace(/^[\s:–—-]+/, '') // trim leftover punctuation
+      .trim();
+    const body = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    return { presenter, body };
+  }
+
+  return { presenter:'', body: t.trim() };
 }
 function findZoomLink(descHtml, descText, location) {
   const tagged = getTagUrl(descHtml, descText, 'ZOOM');
