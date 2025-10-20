@@ -271,6 +271,24 @@ function fmtRange(startISO, endISO, allDay){
     return same ? `${d1} • ${t1}–${t2}` : `${d1} ${t1} → ${e.toLocaleDateString(undefined, optsD)} ${t2}`;
   }
 }
+  function applyDefaultView(){
+  const q = new URLSearchParams(location.search);
+  // accept query or hash: ?view=agenda or #agenda
+  const v = (q.get('view') || location.hash.replace('#','') || '').toLowerCase();
+
+  // normalize a few aliases
+  const wantAgenda = v === 'agenda' || v === 'list' || v === 'a';
+  const wantCards  = v === 'cards'  || v === 'carousel' || v === 'c';
+
+  if (wantAgenda) {
+    document.getElementById('tabAgenda')?.click();
+  } else if (wantCards) {
+    document.getElementById('tabCards')?.click();
+  } else {
+    // default if nothing specified
+    document.getElementById('tabCards')?.click();
+  }
+}
 function htmlToText(html) {
   const d = document.createElement('div');
   d.innerHTML = html || '';
@@ -826,6 +844,9 @@ function initTabs(){
   }
   tabCards.addEventListener('click',  ()=>select('cards'));
   tabAgenda.addEventListener('click', ()=>select('agenda'));
+
+  // ⬇️ ensure a defined initial state (cards) before applyDefaultView runs
+  select('cards');
 }
 
 /* ========= Boot ========= */
@@ -833,12 +854,24 @@ function initTabs(){
   try{
     initTabs();
     const events = await fetchEvents();
-    if (!events.length){ document.getElementById('empty').hidden = false; return; }
+    if (!events.length){
+      const e = document.getElementById('empty');
+      e.hidden = false;
+      e.textContent = 'No upcoming events.';
+      return;
+    }
     renderCards(events);
-    try { renderAgenda(events); } catch (e) { console.error('Agenda render failed:', e); }
+    renderAgenda(events);
+
+    // arrows need the cards in the DOM first
+    initRailNav();
+
+    // ⬇️ default to ?view=agenda or ?view=cards (or #agenda/#cards)
+    applyDefaultView();
   }catch(err){
     const e = document.getElementById('empty');
-    e.hidden = false; e.textContent = 'Could not load events. (' + err.message + ')';
+    e.hidden = false;
+    e.textContent = 'Could not load events. (' + err.message + ')';
     console.error(err);
   }
 })();
