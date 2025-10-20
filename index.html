@@ -245,8 +245,6 @@ overflow-y: visible;     /* allow the hover-lift to show */
 
 <script>
 /* ========= CONFIG ========= */
-const CALENDAR_ID   = 'unkaitcalendar@gmail.com';
-const API_KEY       = 'AIzaSyBUJxL5LLxzrzutXCSGBcv28XJX02GhSIU';
 const MONTHS_AHEAD  = 3;
 const MAX_RESULTS   = 50;
 const FALLBACK_IMAGE= 'https://stephanielanik.github.io/pd-events/images/aitevent.jpg';
@@ -509,19 +507,18 @@ function setCardsEmptyState(isEmpty){
   }
 }
 /* ========= Fetch ========= */
+// Use the Worker instead of calling Google directly
+const API_BASE = 'https://your-worker.subdomain.workers.dev'; // <-- paste your Worker URL
+
 async function fetchEvents(){
   const { timeMin, timeMax } = getRange();
-  const base = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events`;
-  const url  = new URL(base);
-  url.searchParams.set('key', API_KEY);
-  url.searchParams.set('singleEvents','true');
-  url.searchParams.set('orderBy','startTime');
-  url.searchParams.set('maxResults', String(MAX_RESULTS));
+  const url = new URL(API_BASE);
   url.searchParams.set('timeMin', timeMin);
   url.searchParams.set('timeMax', timeMax);
+  url.searchParams.set('maxResults', String(MAX_RESULTS));
 
   const r = await fetch(url.toString());
-  if (!r.ok) throw new Error('Google API error ' + r.status);
+  if (!r.ok) throw new Error('Proxy error ' + r.status);
   const data = await r.json();
   return (data.items || []).filter(ev => ev.status !== 'cancelled');
 }
